@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="content">
+
+  <sql id="profileCols">
+    id::text AS id, name, description,
+    address, latitude, longitude,
+    phone, email,
+    image_ids::text[] AS "imageIds",
+    created_at AS "createdAt",
+    updated_at AS "updatedAt"
+  </sql>
+
+  <select id="getVillageProfile">
+    SELECT <include refid="profileCols"/>
+    FROM village_profile
+    ORDER BY created_at ASC
+    LIMIT 1
+  </select>
+
+  <insert id="createVillageProfile">
+    INSERT INTO village_profile (name, description, address, latitude, longitude, phone, email, image_ids)
+    VALUES (#{name}, #{description}, ${address}, #{latitude}, #{longitude}, #{phone}, #{email}, ${imageIds})
+    RETURNING <include refid="profileCols"/>
+  </insert>
+
+  <update id="updateVillageProfile">
+    UPDATE village_profile
+    <set>
+      <if test="name != null">name = #{name},</if>
+      <if test="description != null">description = #{description},</if>
+      <if test="address != null">address = ${address},</if>
+      <if test="latitude != null">latitude = #{latitude},</if>
+      <if test="longitude != null">longitude = #{longitude},</if>
+      <if test="phone != null">phone = #{phone},</if>
+      <if test="email != null">email = #{email},</if>
+      <if test="imageIds != null">image_ids = ${imageIds},</if>
+      updated_at = CURRENT_TIMESTAMP
+    </set>
+    WHERE id = ${id}
+    RETURNING <include refid="profileCols"/>
+  </update>
+
+</mapper>

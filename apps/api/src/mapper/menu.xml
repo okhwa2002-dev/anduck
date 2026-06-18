@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="menu">
+
+  <!--
+    로그인 사용자용: user_permission → permission_menu 조인으로 해당 사용자에게 매핑된 메뉴 조회
+    같은 메뉴가 여러 permission에 연결될 수 있으므로 DISTINCT 처리
+  -->
+  <select id="listMenusByUser">
+    SELECT DISTINCT
+      m.id::text        AS id,
+      m.group_id::text  AS "groupId",
+      m.parent_id::text AS "parentId",
+      m.menu_code       AS "menuCode",
+      m.menu_name       AS "menuName",
+      m.path,
+      m.icon,
+      m.roles,
+      m.target,
+      m.active_yn       AS "activeYn",
+      m.sort_order      AS "sortOrder",
+      m.created_at      AS "createdAt",
+      m.updated_at      AS "updatedAt"
+    FROM menu m
+    JOIN menu_group mg      ON mg.id = m.group_id
+    JOIN permission_menu pm ON pm.menu_id = m.id
+    JOIN user_permission up ON up.permission_id = pm.permission_id
+    WHERE m.active_yn = 'Y'
+      AND mg.use_yn = 'Y'
+      AND up.user_id = ${userId}
+      <if test="groupCode != null">
+        AND mg.group_code = #{groupCode}
+      </if>
+    ORDER BY mg.sort_order, m.sort_order
+  </select>
+
+  <!--
+    게스트용: roles = '{}' (빈 배열) 인 메뉴 = 권한 없이 누구나 접근 가능한 디폴트 메뉴
+    array_length(roles, 1) IS NULL ← PostgreSQL에서 빈 배열은 NULL 반환
+  -->
+  <select id="listDefaultMenus">
+    SELECT
+      m.id::text        AS id,
+      m.group_id::text  AS "groupId",
+      m.parent_id::text AS "parentId",
+      m.menu_code       AS "menuCode",
+      m.menu_name       AS "menuName",
+      m.path,
+      m.icon,
+      m.roles,
+      m.target,
+      m.active_yn       AS "activeYn",
+      m.sort_order      AS "sortOrder",
+      m.created_at      AS "createdAt",
+      m.updated_at      AS "updatedAt"
+    FROM menu m
+    JOIN menu_group mg ON mg.id = m.group_id
+    WHERE m.active_yn = 'Y'
+      AND mg.use_yn = 'Y'
+      <![CDATA[ AND array_length(m.roles, 1) IS NULL ]]>
+      <if test="groupCode != null">
+        AND mg.group_code = #{groupCode}
+      </if>
+    ORDER BY mg.sort_order, m.sort_order
+  </select>
+
+  <!-- 메뉴 그룹 목록 -->
+  <select id="listMenuGroups">
+    SELECT
+      mg.id::text     AS id,
+      mg.group_code   AS "groupCode",
+      mg.group_name   AS "groupName",
+      mg.description,
+      mg.use_yn       AS "useYn",
+      mg.sort_order   AS "sortOrder",
+      mg.created_at   AS "createdAt",
+      mg.updated_at   AS "updatedAt"
+    FROM menu_group mg
+    <where>
+      <if test="useYn != null">AND mg.use_yn = #{useYn}</if>
+    </where>
+    ORDER BY mg.sort_order
+  </select>
+
+  <!-- 단일 메뉴 그룹 조회 -->
+  <select id="getMenuGroup">
+    SELECT
+      mg.id::text     AS id,
+      mg.group_code   AS "groupCode",
+      mg.group_name   AS "groupName",
+      mg.description,
+      mg.use_yn       AS "useYn",
+      mg.sort_order   AS "sortOrder",
+      mg.created_at   AS "createdAt",
+      mg.updated_at   AS "updatedAt"
+    FROM menu_group mg
+    WHERE mg.group_code = #{groupCode}
+  </select>
+
+  <!-- 메뉴 그룹 생성 -->
+  <insert id="createMenuGroup">
+    INSERT INTO menu_group (group_code, group_name, description, use_yn, sort_order, created_by, updated_at)
+    VALUES (
+      #{groupCode}, #{groupName}, #{description},
+      COALESCE(#{useYn}, 'Y'), COALESCE(#{sortOrder}, 0),
+      ${createdBy}, NOW()
+    )
+    RETURNING
+      id::text, group_code AS "groupCode", group_name AS "groupName",
+      description, use_yn AS "useYn", sort_order AS "sortOrder",
+      created_at AS "createdAt", updated_at AS "updatedAt"
+  </insert>
+
+  <!-- 메뉴 생성 -->
+  <insert id="createMenu">
+    INSERT INTO menu (group_id, parent_id, menu_code, menu_name, path, icon, roles, target, active_yn, sort_order, created_by, updated_at)
+    VALUES (
+      ${groupId}, ${parentId}, #{menuCode}, #{menuName},
+      #{path}, #{icon}, ${roles}, COALESCE(#{target}, '_self'),
+      COALESCE(#{activeYn}, 'Y'), COALESCE(#{sortOrder}, 0),
+      ${createdBy}, NOW()
+    )
+    RETURNING
+      id::text, group_id::text AS "groupId", parent_id::text AS "parentId",
+      menu_code AS "menuCode", menu_name AS "menuName",
+      path, icon, roles, target,
+      active_yn AS "activeYn", sort_order AS "sortOrder",
+      created_at AS "createdAt", updated_at AS "updatedAt"
+  </insert>
+
+  <!-- 메뉴 수정 -->
+  <update id="updateMenu">
+    UPDATE menu
+    <set>
+      <if test="menuName != null">menu_name = #{menuName},</if>
+      <if test="path != null">path = #{path},</if>
+      <if test="icon != null">icon = #{icon},</if>
+      <if test="roles != null">roles = ${roles},</if>
+      <if test="target != null">target = #{target},</if>
+      <if test="activeYn != null">active_yn = #{activeYn},</if>
+      <if test="sortOrder != null">sort_order = #{sortOrder},</if>
+      updated_at = NOW()
+    </set>
+    WHERE id = ${id}
+    RETURNING
+      id::text, group_id::text AS "groupId", parent_id::text AS "parentId",
+      menu_code AS "menuCode", menu_name AS "menuName",
+      path, icon, roles, target,
+      active_yn AS "activeYn", sort_order AS "sortOrder",
+      created_at AS "createdAt", updated_at AS "updatedAt"
+  </update>
+
+</mapper>

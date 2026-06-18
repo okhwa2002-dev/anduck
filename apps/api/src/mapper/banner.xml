@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="banner">
+
+  <sql id="cols">
+    id::text AS id, title, subtitle,
+    image_id::text AS "imageId",
+    link_type AS "linkType",
+    link_value AS "linkValue",
+    active_yn AS "activeYn",
+    sort_order AS "sortOrder",
+    created_at AS "createdAt",
+    updated_at AS "updatedAt"
+  </sql>
+
+  <select id="countBanners">
+    SELECT COUNT(*) AS total FROM banner
+    <where>
+      <if test="activeYn != null">active_yn = #{activeYn}</if>
+    </where>
+  </select>
+
+  <select id="listBanners">
+    SELECT <include refid="cols"/>
+    FROM banner
+    <where>
+      <if test="activeYn != null">active_yn = #{activeYn}</if>
+    </where>
+    ORDER BY sort_order ASC, created_at DESC
+    ${limitOffset}
+  </select>
+
+  <select id="getBannerById">
+    SELECT <include refid="cols"/>
+    FROM banner
+    WHERE id = ${id}
+    LIMIT 1
+  </select>
+
+  <insert id="createBanner">
+    INSERT INTO banner (title, subtitle, image_id, link_type, link_value, active_yn, sort_order)
+    VALUES (#{title}, #{subtitle}, ${imageId}, #{linkType}, #{linkValue}, #{activeYn}, #{sortOrder})
+    RETURNING <include refid="cols"/>
+  </insert>
+
+  <update id="updateBanner">
+    UPDATE banner
+    <set>
+      <if test="title != null">title = #{title},</if>
+      <if test="subtitle != null">subtitle = #{subtitle},</if>
+      <if test="imageId != null">image_id = ${imageId},</if>
+      <if test="linkType != null">link_type = #{linkType},</if>
+      <if test="linkValue != null">link_value = #{linkValue},</if>
+      <if test="activeYn != null">active_yn = #{activeYn},</if>
+      <if test="sortOrder != null">sort_order = #{sortOrder},</if>
+      updated_at = CURRENT_TIMESTAMP
+    </set>
+    WHERE id = ${id}
+    RETURNING <include refid="cols"/>
+  </update>
+
+</mapper>

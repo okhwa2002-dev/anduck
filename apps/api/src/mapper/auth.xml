@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="auth">
+
+  <sql id="userCols">
+    id::text AS id, login_id AS "loginId", email, name, phone, user_type AS "userType",
+    created_at AS "createdAt", updated_at AS "updatedAt"
+  </sql>
+
+  <select id="getFirstUserId">
+    SELECT id::text AS id FROM "user" ORDER BY created_at ASC LIMIT 1
+  </select>
+
+  <select id="getUserByLoginId">
+    SELECT <include refid="userCols"/>, password_hash AS "passwordHash"
+    FROM "user"
+    WHERE login_id = #{loginId}
+    LIMIT 1
+  </select>
+
+  <select id="getUserByEmail">
+    SELECT <include refid="userCols"/>, password_hash AS "passwordHash"
+    FROM "user"
+    WHERE email = #{email}
+    LIMIT 1
+  </select>
+
+  <select id="getUserById">
+    SELECT <include refid="userCols"/>
+    FROM "user"
+    WHERE id = ${id}
+    LIMIT 1
+  </select>
+
+  <insert id="createUser">
+    INSERT INTO "user" (login_id, email, password_hash, name, phone, user_type)
+    VALUES (#{loginId}, #{email}, #{passwordHash}, #{name}, #{phone}, COALESCE(#{userType}, 'MEMBER'))
+    RETURNING <include refid="userCols"/>
+  </insert>
+
+  <insert id="assignDefaultPermissions">
+    INSERT INTO user_permission (user_id, permission_id)
+    SELECT ${userId}, permission_id
+    FROM user_type_permission
+    WHERE user_type = #{userType}
+    ON CONFLICT (user_id, permission_id) DO NOTHING
+  </insert>
+
+  <insert id="createRefreshToken">
+    INSERT INTO refresh_token (user_id, token, user_agent, expires_at)
+    VALUES (${userId}, #{token}, #{userAgent}, #{expiresAt}::timestamptz)
+    RETURNING id::text AS id, user_id::text AS "userId", token,
+              expires_at AS "expiresAt", created_at AS "createdAt"
+  </insert>
+
+  <select id="getRefreshToken">
+    SELECT
+      id::text AS id,
+      user_id::text AS "userId",
+      token,
+      expires_at AS "expiresAt",
+      revoked_at AS "revokedAt"
+    FROM refresh_token
+    WHERE token = #{token}
+    LIMIT 1
+  </select>
+
+  <update id="revokeRefreshToken">
+    UPDATE refresh_token
+    SET revoked_at = CURRENT_TIMESTAMP
+    WHERE token = #{token}
+    AND (revoked_at IS NULL)
+  </update>
+
+  <update id="revokeUserRefreshToken">
+    UPDATE refresh_token
+    SET revoked_at = CURRENT_TIMESTAMP
+    WHERE user_id = ${userId}
+    AND token = #{token}
+    AND revoked_at IS NULL
+  </update>
+
+</mapper>

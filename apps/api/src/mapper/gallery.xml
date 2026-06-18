@@ -1,0 +1,62 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gallery">
+
+  <sql id="cols">
+    id::text AS id, title, description,
+    image_id::text AS "imageId",
+    active_yn AS "activeYn",
+    sort_order AS "sortOrder",
+    created_at AS "createdAt",
+    updated_at AS "updatedAt"
+  </sql>
+
+  <select id="countGalleryItems">
+    SELECT COUNT(*) AS total FROM gallery_item
+    <where>
+      <if test="activeYn != null">active_yn = #{activeYn}</if>
+      <if test="q != null">AND title ILIKE '%' || #{q} || '%'</if>
+    </where>
+  </select>
+
+  <select id="listGalleryItems">
+    SELECT <include refid="cols"/>
+    FROM gallery_item
+    <where>
+      <if test="activeYn != null">active_yn = #{activeYn}</if>
+      <if test="q != null">AND title ILIKE '%' || #{q} || '%'</if>
+    </where>
+    ORDER BY sort_order ASC, created_at DESC
+    ${limitOffset}
+  </select>
+
+  <select id="getGalleryItemById">
+    SELECT <include refid="cols"/>
+    FROM gallery_item
+    WHERE id = ${id}
+    <if test="activeYn != null">AND active_yn = #{activeYn}</if>
+    LIMIT 1
+  </select>
+
+  <insert id="createGalleryItem">
+    INSERT INTO gallery_item (title, description, image_id, active_yn, sort_order, created_by, updated_by)
+    VALUES (#{title}, #{description}, ${imageId}, #{activeYn}, #{sortOrder}, ${createdBy}, ${createdBy})
+    RETURNING <include refid="cols"/>
+  </insert>
+
+  <update id="updateGalleryItem">
+    UPDATE gallery_item
+    <set>
+      <if test="title != null">title = #{title},</if>
+      <if test="description != null">description = #{description},</if>
+      <if test="imageId != null">image_id = ${imageId},</if>
+      <if test="activeYn != null">active_yn = #{activeYn},</if>
+      <if test="sortOrder != null">sort_order = #{sortOrder},</if>
+      updated_at = CURRENT_TIMESTAMP
+    </set>
+    WHERE id = ${id}
+    RETURNING <include refid="cols"/>
+  </update>
+
+</mapper>

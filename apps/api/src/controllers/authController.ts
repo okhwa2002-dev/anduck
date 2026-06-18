@@ -1,0 +1,64 @@
+import type { FastifyRequest, FastifyReply } from "fastify";
+import authService from "../services/authService";
+import { BadRequestError, ConflictError } from "../utils/errors";
+
+const authController = {
+  async login(req: FastifyRequest<{ Body: { loginId: string; password: string } }>, reply: FastifyReply) {
+    const { loginId, password } = req.body;
+    const user = await authService.validateCredentials(loginId, password);
+    if (!user) return reply.code(401).send({ message: "이메일 또는 비밀번호가 올바르지 않습니다" });
+    const payload = { sub: user.id, email: user.email, userType: user.userType };
+    const accessToken = req.server.jwt.sign(payload, { expiresIn: process.env.JWT_EXPIRES_IN ?? "15m" });
+    const refreshToken = req.server.jwt.sign(payload, { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN ?? "7d" });
+    await authService.saveRefreshToken(user.id, refreshToken, req.headers["user-agent"]);
+    return { user, tokens: { accessToken, refreshToken } };
+  },
+
+  async signup(req: FastifyRequest<{ Body: { loginId: string; email: string; password: string; name: string; phone?: string } }>, reply: FastifyReply) {
+    const { loginId, email, password, name, phone } = req.body;
+    try {
+      const user = await authService.createUser(loginId, email, password, name, phone);
+      const payload = { sub: user.id, email: user.email, userType: user.userType };
+      const accessToken = req.server.jwt.sign(payload, { expiresIn: process.env.JWT_EXPIRES_IN ?? "15m" });
+      const refreshToken = req.server.jwt.sign(payload, { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN ?? "7d" });
+      await authService.saveRefreshToken(user.id, refreshToken, req.headers["user-agent"]);
+      return reply.code(201).send({ user, tokens: { accessToken, refreshToken } });
+    } catch (err: any) {
+      if (err.code === "23505") throw new ConflictError("이미 사용 중인 이메일입니다");
+      throw err;
+    }
+  },
+
+  async refresh(req: FastifyRequest<{ Body: { refreshToken: string } }>, reply: FastifyReply) {
+    const { refreshToken } = req.body ?? {};
+    if (!refreshToken) throw new BadRequestError("리프레시 토큰이 필요합니다");
+    const stored = await authService.getRefreshToken(refreshToken);
+    if (!stored || stored.revokedAt || new Date(stored.expiresAt) < new Date()) {
+      return reply.code(401).send({ message: "유효하지 않은 리프레시 토큰입니다" });
+    }
+    const user = await authService.getUserById(stored.userId);
+    if (!user) return reply.code(401).send({ message: "사용자를 찾을 수 없습니다" });
+    await authService.revokeToken(stored.userId, refreshToken);
+    const payload = { sub: user.id, email: user.email, userType: user.userType };
+    const accessToken = req.server.jwt.sign(payload, { expiresIn: process.env.JWT_EXPIRES_IN ?? "15m" });
+    const newRefreshToken = req.server.jwt.sign(payload, { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN ?? "7d" });
+    await authService.saveRefreshToken(user.id, newRefreshToken, req.headers["user-agent"]);
+    return { user, tokens: { accessToken, refreshToken: newRefreshToken } };
+  },
+
+  async logout(req: FastifyRequest, reply: FastifyReply) {
+    const { sub } = req.user;
+    const body = req.body as { refreshToken?: string };
+    if (body?.refreshToken) await authService.revokeToken(sub, body.refreshToken);
+    return reply.code(204).send();
+  },
+
+  async me(req: FastifyRequest) {
+    const { sub } = req.user;
+    const user = await authService.getUserById(sub);
+    if (!user) return { id: sub, email: req.user.email, userType: req.user.userType };
+    return user;
+  },
+};
+
+export default authController;

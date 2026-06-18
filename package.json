@@ -1,0 +1,22 @@
+{
+  "name": "anduck",
+  "version": "0.1.0",
+  "private": true,
+  "description": "안덕마을 - 건강힐링체험마을 (mobile + web + api monorepo)",
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "start": "pnpm --filter @anduck/api start",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "clean": "turbo run clean"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.3"
+  }
+}

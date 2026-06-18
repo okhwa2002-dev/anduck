@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="image">
+
+  <sql id="cols">
+    id::text AS id, url, alt,
+    mime_type AS "mimeType",
+    size,
+    created_at AS "createdAt",
+    created_by::text AS "createdBy"
+  </sql>
+
+  <select id="getImagesByIds">
+    SELECT <include refid="cols"/>
+    FROM image
+    WHERE id = ANY(${ids}::bigint[])
+  </select>
+
+  <insert id="createImage">
+    INSERT INTO image (url, alt, mime_type, size, created_by)
+    VALUES (#{url}, #{alt}, #{mimeType}, #{size}, ${createdBy})
+    RETURNING <include refid="cols"/>
+  </insert>
+
+</mapper>

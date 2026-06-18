@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="facility">
+
+  <sql id="cols">
+    id::text AS id, kind, name, summary, description,
+    address, latitude, longitude,
+    main_image_id::text AS "mainImageId",
+    image_ids::text[] AS "imageIds",
+    featured_yn AS "featuredYn",
+    active_yn AS "activeYn",
+    sort_order AS "sortOrder",
+    created_at AS "createdAt",
+    updated_at AS "updatedAt"
+  </sql>
+
+  <select id="countFacilities">
+    SELECT COUNT(*) AS total FROM facility
+    <where>
+      <if test="activeYn != null">active_yn = #{activeYn}</if>
+      <if test="featuredYn != null">AND featured_yn = #{featuredYn}</if>
+      <if test="kind != null">AND kind = #{kind}</if>
+      <if test="q != null">AND name ILIKE '%' || #{q} || '%'</if>
+    </where>
+  </select>
+
+  <select id="listFacilities">
+    SELECT <include refid="cols"/>
+    FROM facility
+    <where>
+      <if test="activeYn != null">active_yn = #{activeYn}</if>
+      <if test="featuredYn != null">AND featured_yn = #{featuredYn}</if>
+      <if test="kind != null">AND kind = #{kind}</if>
+      <if test="q != null">AND name ILIKE '%' || #{q} || '%'</if>
+    </where>
+    ORDER BY sort_order ASC, created_at DESC
+    ${limitOffset}
+  </select>
+
+  <select id="getFacilityById">
+    SELECT <include refid="cols"/>
+    FROM facility
+    WHERE id = ${id}
+    <if test="activeYn != null">AND active_yn = #{activeYn}</if>
+    LIMIT 1
+  </select>
+
+  <insert id="createFacility">
+    INSERT INTO facility (
+      kind, name, summary, description,
+      address, latitude, longitude,
+      main_image_id, image_ids,
+      featured_yn, active_yn, sort_order,
+      created_by, updated_by
+    ) VALUES (
+      #{kind}, #{name}, #{summary}, #{description},
+      ${address}, #{latitude}, #{longitude},
+      ${mainImageId}, ${imageIds},
+      #{featuredYn}, #{activeYn}, #{sortOrder},
+      ${createdBy}, ${createdBy}
+    )
+    RETURNING <include refid="cols"/>
+  </insert>
+
+  <update id="updateFacility">
+    UPDATE facility
+    <set>
+      <if test="kind != null">kind = #{kind},</if>
+      <if test="name != null">name = #{name},</if>
+      <if test="summary != null">summary = #{summary},</if>
+      <if test="description != null">description = #{description},</if>
+      <if test="address != null">address = ${address},</if>
+      <if test="latitude != null">latitude = #{latitude},</if>
+      <if test="longitude != null">longitude = #{longitude},</if>
+      <if test="mainImageId != null">main_image_id = ${mainImageId},</if>
+      <if test="imageIds != null">image_ids = ${imageIds},</if>
+      <if test="featuredYn != null">featured_yn = #{featuredYn},</if>
+      <if test="activeYn != null">active_yn = #{activeYn},</if>
+      <if test="sortOrder != null">sort_order = #{sortOrder},</if>
+      updated_at = CURRENT_TIMESTAMP
+    </set>
+    WHERE id = ${id}
+    RETURNING <include refid="cols"/>
+  </update>
+
+</mapper>

@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="reservation">
+
+  <sql id="cols">
+    id::text AS id, kind, status,
+    applicant_name AS "applicantName",
+    applicant_phone AS "applicantPhone",
+    applicant_email AS "applicantEmail",
+    target_id::text AS "targetId",
+    target_name AS "targetName",
+    room_id::text AS "roomId",
+    room_name AS "roomName",
+    session_id::text AS "sessionId",
+    start_date AS "startDate",
+    end_date AS "endDate",
+    guests,
+    request_memo AS "requestMemo",
+    admin_memo AS "adminMemo",
+    created_at AS "createdAt",
+    updated_at AS "updatedAt"
+  </sql>
+
+  <select id="countReservations">
+    SELECT COUNT(*) AS total FROM reservation
+    <where>
+      <if test="status != null">status = #{status}</if>
+      <if test="kind != null">AND kind = #{kind}</if>
+      <if test="q != null">
+        AND (applicant_name ILIKE '%' || #{q} || '%'
+          OR applicant_phone ILIKE '%' || #{q} || '%')
+      </if>
+    </where>
+  </select>
+
+  <select id="listReservations">
+    SELECT <include refid="cols"/>
+    FROM reservation
+    <where>
+      <if test="status != null">status = #{status}</if>
+      <if test="kind != null">AND kind = #{kind}</if>
+      <if test="q != null">
+        AND (applicant_name ILIKE '%' || #{q} || '%'
+          OR applicant_phone ILIKE '%' || #{q} || '%')
+      </if>
+    </where>
+    ORDER BY created_at DESC
+    ${limitOffset}
+  </select>
+
+  <select id="getReservationById">
+    SELECT <include refid="cols"/>
+    FROM reservation
+    WHERE id = ${id}
+    LIMIT 1
+  </select>
+
+  <select id="lookupReservations">
+    SELECT <include refid="cols"/>
+    FROM reservation
+    WHERE applicant_name = #{name}
+    AND applicant_phone = #{phone}
+    ORDER BY created_at DESC
+  </select>
+
+  <select id="checkAvailability">
+    SELECT id::text AS id, start_date AS "startDate"
+    FROM reservation
+    WHERE kind = #{kind}
+    AND target_id = ${targetId}
+    AND start_date = #{startDate}::date
+    AND status != 'CANCELLED'
+    <if test="roomId != null">AND room_id = ${roomId}</if>
+  </select>
+
+  <insert id="createReservation">
+    INSERT INTO reservation (
+      kind, status,
+      applicant_name, applicant_phone, applicant_email,
+      user_id,
+      target_id, target_name,
+      room_id, room_name, session_id,
+      start_date, end_date, guests, request_memo
+    ) VALUES (
+      #{kind}, 'PENDING',
+      #{applicantName}, #{applicantPhone}, #{applicantEmail},
+      ${userId},
+      ${targetId}, #{targetName},
+      ${roomId}, #{roomName}, ${sessionId},
+      #{startDate}::date, #{endDate}::date, #{guests}, #{requestMemo}
+    )
+    RETURNING <include refid="cols"/>
+  </insert>
+
+  <update id="updateReservationStatus">
+    UPDATE reservation
+    <set>
+      status = #{status},
+      <if test="adminMemo != null">admin_memo = #{adminMemo},</if>
+      updated_at = CURRENT_TIMESTAMP
+    </set>
+    WHERE id = ${id}
+    RETURNING <include refid="cols"/>
+  </update>
+
+  <select id="countTodayReservations">
+    SELECT COUNT(*) AS count
+    FROM reservation
+    WHERE created_at >= CURRENT_DATE::timestamptz
+  </select>
+
+  <select id="countPendingReservations">
+    SELECT COUNT(*) AS count
+    FROM reservation
+    WHERE status = 'PENDING'
+  </select>
+
+  <select id="listRecentReservations">
+    SELECT <include refid="cols"/>
+    FROM reservation
+    ORDER BY created_at DESC
+    LIMIT #{limit}
+  </select>
+
+</mapper>

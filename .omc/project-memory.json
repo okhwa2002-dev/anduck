@@ -1,0 +1,389 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1781741074135,
+  "projectRoot": "d:\\workspace\\ok2020\\anduck",
+  "techStack": {
+    "languages": [
+      {
+        "name": "JavaScript/TypeScript",
+        "version": ">=20",
+        "confidence": "high",
+        "markers": [
+          "package.json"
+        ]
+      }
+    ],
+    "frameworks": [],
+    "packageManager": "pnpm",
+    "runtime": "Node.js 20"
+  },
+  "build": {
+    "buildCommand": "pnpm build",
+    "testCommand": null,
+    "lintCommand": "pnpm lint",
+    "devCommand": "pnpm dev",
+    "scripts": {
+      "dev": "turbo run dev",
+      "build": "turbo run build",
+      "lint": "turbo run lint",
+      "typecheck": "turbo run typecheck",
+      "clean": "turbo run clean"
+    }
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": true,
+    "workspaces": [],
+    "mainDirectories": [],
+    "gitBranches": null
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "apps": {
+      "path": "apps",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1781741074056,
+      "keyFiles": []
+    },
+    "packages": {
+      "path": "packages",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1781741074075,
+      "keyFiles": [
+        "tsconfig.json"
+      ]
+    },
+    "apps\\api": {
+      "path": "apps\\api",
+      "purpose": "API routes",
+      "fileCount": 8,
+      "lastAccessed": 1781741074076,
+      "keyFiles": [
+        "api.err.log",
+        "api.out.log",
+        "CLAUDE.md"
+      ]
+    },
+    "packages\\types": {
+      "path": "packages\\types",
+      "purpose": "Type definitions",
+      "fileCount": 3,
+      "lastAccessed": 1781741074077,
+      "keyFiles": [
+        "package.json",
+        "tsconfig.json",
+        "tsconfig.tsbuildinfo"
+      ]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "",
+      "accessCount": 40,
+      "lastAccessed": 1781768889708,
+      "type": "directory"
+    },
+    {
+      "path": "anduck_schema.sql",
+      "accessCount": 38,
+      "lastAccessed": 1781683139426,
+      "type": "file"
+    },
+    {
+      "path": "apps\\api\\src\\app.ts",
+      "accessCount": 36,
+      "lastAccessed": 1781749010463,
+      "type": "file"
+    },
+    {
+      "path": "apps\\api\\src\\services\\mappers.ts",
+      "accessCount": 23,
+      "lastAccessed": 1781681868031,
+      "type": "file"
+    },
+    {
+      "path": "apps\\api\\src\\routes\\public.ts",
+      "accessCount": 20,
+      "lastAccessed": 1781659490671,
+      "type": "file"
+    },
+    {
+      "path": "apps\\api\\src\\routes\\auth.ts",
+      "accessCount": 20,
+      "lastAccessed": 1781659490823,
+      "type": "file"
+    },
+    {
+      "path": "apps\\api\\src\\services\\admin.service.ts",
+      "accessCount": 15,
+      "lastAccessed": 1781599477906,
+      "type": "file"
+    },
+    {
+      "path": "apps\\api\\src\\routes\\admin.ts",
+      "accessCount": 15,
+      "lastAccessed": 1781659490118,
+      "type": "file"
+    },
+    {
+      "path": "apps\\api\\src\\utils.ts",
+      "accessCount": 15,
+      "lastAccessed": 1781663314953,
+      "type": "file"
+    },
+    {
+      "path": "packages\\types\\src\\content.ts",
+      "accessCount": 13,
+      "lastAccessed": 1781768238091,
+      "type": "file"
+    },
+    {
+      "path": "apps\\api\\src\\services\\public.service.ts",
+      "accessCount": 12,
+      "lastAccessed": 1781599474247,
+      "type": "file"
+    },
+    {
+      "path": "apps\\api\\src\\db.ts",
+      "accessCount": 11,
+      "lastAccessed": 1781658847607,
+      "type": "file"
+    },
+    {
+      "path": "apps\\api\\package.json",
+      "accessCount": 11,
+      "lastAccessed": 1781660537502,
+      "type": "file"
+    },
+    {
+      "path": "packages\\types\\src\\accommodation.ts",
+      "accessCount": 11,
+      "lastAccessed": 1781768238501,
+      "type": "file"
+    },
+    {
+      "path": "packages\\types\\src\\auth.ts",
+      "accessCount": 10,
+      "lastAccessed": 1781769124272,
+      "type": "file"
+    },
+    {
+      "path": "packages\\types\\src\\permission.ts",
+      "accessCount": 9,
+      "lastAccessed": 1781679306848,
+      "type": "file"
+    },
+    {
+      "path": "packages\\types\\src\\common.ts",
+      "accessCount": 9,
+      "lastAccessed": 1781769138463,
+      "type": "file"
+    },
+    {
+      "path": "apps\\api\\src\\services\\images.service.ts",
+      "accessCount": 6,
+      "lastAccessed": 1781597061080,
+      "type": "file"
+    },
+    {
+      "path": "apps\\api\\src\\index.ts",
+      "accessCount": 6,
+      "lastAccessed": 1781658815389,
+      "type": "file"
+    },
+    {
+      "path": "packages\\types\\src\\menu.ts",
+      "accessCount": 6,
+      "lastAccessed": 1781681622688,
+      "type": "file"
+    },
+    {
+      "path": "packages\\types\\src\\program.ts",
+      "accessCount": 6,
+      "lastAccessed": 1781768238138,
+      "type": "file"
+    },
+    {
+      "path": "packages\\types\\src\\reservation.ts",
+      "accessCount": 6,
+      "lastAccessed": 1781769132975,
+      "type": "file"
+    },
+    {
+      "path": "packages\\types\\src\\index.ts",
+      "accessCount": 5,
+      "lastAccessed": 1781767400256,
+      "type": "file"
+    },
+    {
+      "path": "packages\\types\\src\\admin.ts",
+      "accessCount": 5,
+      "lastAccessed": 1781769131886,
+      "type": "file"
+    },
+    {
+      "path": "apps\\api\\src\\config.ts",
+      "accessCount": 4,
+      "lastAccessed": 1781658799312,
+      "type": "file"
+    },
+    {
+      "path": "packages\\types\\package.json",
+      "accessCount": 3,
+      "lastAccessed": 1781766365558,
+      "type": "file"
+    },
+    {
+      "path": "apps\\api\\src\\app.module.ts",
+      "accessCount": 2,
+      "lastAccessed": 1781588791155,
+      "type": "file"
+    },
+    {
+      "path": "apps\\api\\tsconfig.json",
+      "accessCount": 2,
+      "lastAccessed": 1781597336643,
+      "type": "file"
+    },
+    {
+      "path": "apps\\api\\prisma\\schema.prisma",
+      "accessCount": 2,
+      "lastAccessed": 1781660536633,
+      "type": "file"
+    },
+    {
+      "path": "apps\\api\\.env.example",
+      "accessCount": 2,
+      "lastAccessed": 1781661705775,
+      "type": "file"
+    },
+    {
+      "path": "packages\\types\\src\\code.ts",
+      "accessCount": 1,
+      "lastAccessed": 1781587149722,
+      "type": "file"
+    },
+    {
+      "path": "apps\\api\\nest-cli.json",
+      "accessCount": 1,
+      "lastAccessed": 1781588066494,
+      "type": "file"
+    },
+    {
+      "path": "apps\\api\\src\\prisma\\prisma.module.ts",
+      "accessCount": 1,
+      "lastAccessed": 1781588076698,
+      "type": "file"
+    },
+    {
+      "path": "apps\\api\\src\\prisma\\prisma.service.ts",
+      "accessCount": 1,
+      "lastAccessed": 1781588081597,
+      "type": "file"
+    },
+    {
+      "path": "apps\\api\\src\\common\\utils.ts",
+      "accessCount": 1,
+      "lastAccessed": 1781588084799,
+      "type": "file"
+    },
+    {
+      "path": "apps\\api\\src\\common\\decorators\\current-user.decorator.ts",
+      "accessCount": 1,
+      "lastAccessed": 1781588087810,
+      "type": "file"
+    },
+    {
+      "path": "apps\\api\\src\\common\\decorators\\roles.decorator.ts",
+      "accessCount": 1,
+      "lastAccessed": 1781588092038,
+      "type": "file"
+    },
+    {
+      "path": "apps\\api\\src\\common\\decorators\\public.decorator.ts",
+      "accessCount": 1,
+      "lastAccessed": 1781588095516,
+      "type": "file"
+    },
+    {
+      "path": "apps\\api\\src\\common\\guards\\jwt-auth.guard.ts",
+      "accessCount": 1,
+      "lastAccessed": 1781588099883,
+      "type": "file"
+    },
+    {
+      "path": "apps\\api\\src\\common\\guards\\roles.guard.ts",
+      "accessCount": 1,
+      "lastAccessed": 1781588102932,
+      "type": "file"
+    },
+    {
+      "path": "apps\\api\\src\\common\\filters\\http-exception.filter.ts",
+      "accessCount": 1,
+      "lastAccessed": 1781588106091,
+      "type": "file"
+    },
+    {
+      "path": "apps\\api\\src\\auth\\dto\\login.dto.ts",
+      "accessCount": 1,
+      "lastAccessed": 1781588108776,
+      "type": "file"
+    },
+    {
+      "path": "apps\\api\\src\\auth\\dto\\signup.dto.ts",
+      "accessCount": 1,
+      "lastAccessed": 1781588113901,
+      "type": "file"
+    },
+    {
+      "path": "apps\\api\\src\\auth\\strategies\\jwt.strategy.ts",
+      "accessCount": 1,
+      "lastAccessed": 1781588118113,
+      "type": "file"
+    },
+    {
+      "path": "apps\\api\\src\\auth\\auth.service.ts",
+      "accessCount": 1,
+      "lastAccessed": 1781588120903,
+      "type": "file"
+    },
+    {
+      "path": "apps\\api\\src\\auth\\auth.controller.ts",
+      "accessCount": 1,
+      "lastAccessed": 1781588124339,
+      "type": "file"
+    },
+    {
+      "path": "apps\\api\\src\\auth\\auth.module.ts",
+      "accessCount": 1,
+      "lastAccessed": 1781588131050,
+      "type": "file"
+    },
+    {
+      "path": "apps\\api\\src\\accommodation\\accommodation.service.ts",
+      "accessCount": 1,
+      "lastAccessed": 1781588295957,
+      "type": "file"
+    },
+    {
+      "path": "apps\\api\\src\\accommodation\\accommodation.controller.ts",
+      "accessCount": 1,
+      "lastAccessed": 1781588300457,
+      "type": "file"
+    },
+    {
+      "path": "apps\\api\\src\\accommodation\\accommodation.module.ts",
+      "accessCount": 1,
+      "lastAccessed": 1781588303688,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}

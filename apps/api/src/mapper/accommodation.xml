@@ -1,0 +1,220 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="accommodation">
+
+  <sql id="cols">
+    id::text AS id, type, name, summary, description,
+    main_image_id::text AS "mainImageId",
+    image_ids::text[] AS "imageIds",
+    amenities,
+    check_in_time AS "checkInTime",
+    check_out_time AS "checkOutTime",
+    featured_yn AS "featuredYn",
+    active_yn AS "activeYn",
+    sort_order AS "sortOrder",
+    created_at AS "createdAt",
+    created_by::text AS "createdBy",
+    updated_at AS "updatedAt",
+    updated_by::text AS "updatedBy"
+  </sql>
+
+  <select id="countActiveAccommodations">
+    SELECT COUNT(*)::text AS count FROM accommodation WHERE active_yn = 'Y'
+  </select>
+
+  <select id="getAccommodationName">
+    SELECT name FROM accommodation WHERE id = ${id} LIMIT 1
+  </select>
+
+  <select id="countAccommodations">
+    SELECT COUNT(*) AS total FROM accommodation
+    <where>
+      <if test="activeYn != null">active_yn = #{activeYn}</if>
+      <if test="featuredYn != null">AND featured_yn = #{featuredYn}</if>
+      <if test="q != null">AND name ILIKE '%' || #{q} || '%'</if>
+    </where>
+  </select>
+
+  <select id="listAccommodations">
+    SELECT <include refid="cols"/>
+    FROM accommodation
+    <where>
+      <if test="activeYn != null">active_yn = #{activeYn}</if>
+      <if test="featuredYn != null">AND featured_yn = #{featuredYn}</if>
+      <if test="q != null">AND name ILIKE '%' || #{q} || '%'</if>
+    </where>
+    ORDER BY sort_order ASC, created_at DESC
+    ${limitOffset}
+  </select>
+
+  <select id="getAccommodationById">
+    SELECT <include refid="cols"/>
+    FROM accommodation
+    WHERE id = ${id}
+    LIMIT 1
+  </select>
+
+  <insert id="createAccommodation">
+    INSERT INTO accommodation (
+      type, name, summary, description,
+      main_image_id, image_ids, amenities,
+      check_in_time, check_out_time,
+      featured_yn, active_yn, sort_order,
+      created_by, updated_by
+    ) VALUES (
+      #{type}, #{name}, #{summary}, #{description},
+      ${mainImageId}, ${imageIds}, ${amenities},
+      #{checkInTime}, #{checkOutTime},
+      #{featuredYn}, #{activeYn}, #{sortOrder},
+      ${createdBy}, ${createdBy}
+    )
+    RETURNING <include refid="cols"/>
+  </insert>
+
+  <update id="updateAccommodation">
+    UPDATE accommodation
+    <set>
+      <if test="type != null">type = #{type},</if>
+      <if test="name != null">name = #{name},</if>
+      <if test="summary != null">summary = #{summary},</if>
+      <if test="description != null">description = #{description},</if>
+      <if test="mainImageId != null">main_image_id = ${mainImageId},</if>
+      <if test="imageIds != null">image_ids = ${imageIds},</if>
+      <if test="amenities != null">amenities = ${amenities},</if>
+      <if test="checkInTime != null">check_in_time = #{checkInTime},</if>
+      <if test="checkOutTime != null">check_out_time = #{checkOutTime},</if>
+      <if test="featuredYn != null">featured_yn = #{featuredYn},</if>
+      <if test="activeYn != null">active_yn = #{activeYn},</if>
+      <if test="sortOrder != null">sort_order = #{sortOrder},</if>
+      <if test="updatedBy != null">updated_by = ${updatedBy},</if>
+      updated_at = CURRENT_TIMESTAMP
+    </set>
+    WHERE id = ${id}
+    RETURNING <include refid="cols"/>
+  </update>
+
+  <sql id="roomCols">
+    id::text AS id,
+    accommodation_id::text AS "accommodationId",
+    name, description,
+    base_guests AS "baseGuests",
+    max_guests AS "maxGuests",
+    weekday_price AS "weekdayPrice",
+    weekend_price AS "weekendPrice",
+    main_image_id::text AS "mainImageId",
+    image_ids::text[] AS "imageIds",
+    active_yn AS "activeYn",
+    sort_order AS "sortOrder",
+    created_at AS "createdAt",
+    updated_at AS "updatedAt"
+  </sql>
+
+  <select id="countRooms">
+    SELECT COUNT(*) AS total FROM room
+    WHERE accommodation_id = ${accommodationId}
+    <if test="activeYn != null">AND active_yn = #{activeYn}</if>
+  </select>
+
+  <select id="listRooms">
+    SELECT <include refid="roomCols"/>
+    FROM room
+    WHERE accommodation_id = ${accommodationId}
+    <if test="activeYn != null">AND active_yn = #{activeYn}</if>
+    ORDER BY sort_order ASC, created_at DESC
+    ${limitOffset}
+  </select>
+
+  <select id="getRoomName">
+    SELECT name FROM room WHERE id = ${id} LIMIT 1
+  </select>
+
+  <select id="getRoomById">
+    SELECT <include refid="roomCols"/>
+    FROM room
+    WHERE id = ${id}
+    <if test="accommodationId != null">AND accommodation_id = ${accommodationId}</if>
+    LIMIT 1
+  </select>
+
+  <insert id="createRoom">
+    INSERT INTO room (
+      accommodation_id, name, description,
+      base_guests, max_guests, weekday_price, weekend_price,
+      main_image_id, image_ids,
+      active_yn, sort_order, created_by, updated_by
+    ) VALUES (
+      ${accommodationId}, #{name}, #{description},
+      #{baseGuests}, #{maxGuests}, #{weekdayPrice}, #{weekendPrice},
+      ${mainImageId}, ${imageIds},
+      #{activeYn}, #{sortOrder}, ${createdBy}, ${createdBy}
+    )
+    RETURNING <include refid="roomCols"/>
+  </insert>
+
+  <update id="updateRoom">
+    UPDATE room
+    <set>
+      <if test="name != null">name = #{name},</if>
+      <if test="description != null">description = #{description},</if>
+      <if test="baseGuests != null">base_guests = #{baseGuests},</if>
+      <if test="maxGuests != null">max_guests = #{maxGuests},</if>
+      <if test="weekdayPrice != null">weekday_price = #{weekdayPrice},</if>
+      <if test="weekendPrice != null">weekend_price = #{weekendPrice},</if>
+      <if test="mainImageId != null">main_image_id = ${mainImageId},</if>
+      <if test="imageIds != null">image_ids = ${imageIds},</if>
+      <if test="activeYn != null">active_yn = #{activeYn},</if>
+      <if test="sortOrder != null">sort_order = #{sortOrder},</if>
+      updated_at = CURRENT_TIMESTAMP
+    </set>
+    WHERE id = ${id}
+    RETURNING <include refid="roomCols"/>
+  </update>
+
+  <sql id="rateCols">
+    id::text AS id, name,
+    start_date AS "startDate",
+    end_date AS "endDate",
+    room_id::text AS "roomId",
+    price,
+    active_yn AS "activeYn",
+    created_at AS "createdAt",
+    updated_at AS "updatedAt"
+  </sql>
+
+  <select id="listSeasonRates">
+    SELECT <include refid="rateCols"/>
+    FROM season_rate
+    <where>
+      <if test="activeYn != null">active_yn = #{activeYn}</if>
+      <if test="roomId != null">AND room_id = ${roomId}</if>
+    </where>
+    ORDER BY start_date ASC
+  </select>
+
+  <insert id="createSeasonRate">
+    INSERT INTO season_rate (name, start_date, end_date, room_id, price, active_yn, created_by, updated_by)
+    VALUES (#{name}, #{startDate}::date, #{endDate}::date, ${roomId}, #{price}, #{activeYn}, ${createdBy}, ${createdBy})
+    RETURNING <include refid="rateCols"/>
+  </insert>
+
+  <update id="updateSeasonRate">
+    UPDATE season_rate
+    <set>
+      <if test="name != null">name = #{name},</if>
+      <if test="startDate != null">start_date = #{startDate}::date,</if>
+      <if test="endDate != null">end_date = #{endDate}::date,</if>
+      <if test="roomId != null">room_id = ${roomId},</if>
+      <if test="price != null">price = #{price},</if>
+      <if test="activeYn != null">active_yn = #{activeYn},</if>
+      updated_at = CURRENT_TIMESTAMP
+    </set>
+    WHERE id = ${id}
+    RETURNING <include refid="rateCols"/>
+  </update>
+
+  <delete id="deleteSeasonRate">
+    DELETE FROM season_rate WHERE id = ${id}
+  </delete>
+
+</mapper>
