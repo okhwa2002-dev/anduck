@@ -10,8 +10,20 @@ export interface HomeData {
   featuredFacilities: Facility[];
 }
 
+const emptyHomeData: HomeData = {
+  banners: [],
+  featuredPrograms: [],
+  featuredAccommodations: [],
+  latestNotices: [],
+  featuredFacilities: [],
+};
+
 export async function getHomeData(): Promise<HomeData> {
-  const res = await fetch(`${API_URL}/home`, { next: { revalidate: 300 } });
-  if (!res.ok) throw new Error("홈 데이터 로드 실패");
-  return res.json() as Promise<HomeData>;
+  try {
+    const res = await fetch(`${API_URL}/home`, { next: { revalidate: 300 } });
+    if (!res.ok) return emptyHomeData;
+    return res.json() as Promise<HomeData>;
+  } catch {
+    return emptyHomeData;
+  }
 }
