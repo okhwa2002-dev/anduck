@@ -4,7 +4,7 @@ import rateLimit from "@fastify/rate-limit";
 import swagger from "@fastify/swagger";
 import swaggerUi from "@fastify/swagger-ui";
 import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest } from "fastify";
-import { loadMappers, pool } from "./utils/db";
+import { loadMappers, pool, setDbLogger } from "./utils/db";
 import { localISOString, LogRotator } from "./utils/logger";
 import registerAdminRoutes from "./routes/adminRoutes";
 import { AppError } from "./utils/errors";
@@ -26,6 +26,7 @@ export async function createApp(): Promise<FastifyInstance> {
   loadMappers();
 
   const isTest = process.env.NODE_ENV === "test";
+
   const rotator = isTest ? null : new LogRotator();
 
   const app = Fastify({
@@ -34,6 +35,8 @@ export async function createApp(): Promise<FastifyInstance> {
       ? ({ level: "info", timestamp: () => `,"time":"${localISOString()}"`, stream: rotator } as any)
       : !isTest,
   });
+
+  setDbLogger(app.log);
 
   await app.register(swagger, {
     openapi: {

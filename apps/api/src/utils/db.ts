@@ -2,6 +2,7 @@ import { Pool } from "pg";
 import mybatisMapper from "mybatis-mapper";
 import { join } from "path";
 import { readdirSync } from "fs";
+import type { FastifyBaseLogger } from "fastify";
 
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -24,11 +25,21 @@ type MapperParams = Record<string, any>;
 
 const DB_LOG = process.env.DB_LOG === "true";
 
+let _logger: FastifyBaseLogger | null = null;
+
+export function setDbLogger(logger: FastifyBaseLogger): void {
+  _logger = logger.child({ component: "db" });
+}
+
 export function buildSQL(namespace: string, id: string, params?: MapperParams): string {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const sql = mybatisMapper.getStatement(namespace, id, (params ?? {}) as any);
   if (DB_LOG) {
-    process.stdout.write(`\n[SQL] ${namespace}.${id}\n${sql}\n`);
+    if (_logger) {
+      _logger.info({ sql }, `${namespace}.${id}`);
+    } else {
+      process.stdout.write(`\n[SQL] ${namespace}.${id}\n${sql}\n`);
+    }
   }
   return sql;
 }
