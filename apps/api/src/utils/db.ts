@@ -35,10 +35,11 @@ export function buildSQL(namespace: string, id: string, params?: MapperParams): 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const sql = mybatisMapper.getStatement(namespace, id, (params ?? {}) as any);
   if (DB_LOG) {
+    const msg = `[SQL] ${namespace}.${id}\n${sql}`;
     if (_logger) {
-      _logger.info({ sql }, `${namespace}.${id}`);
+      _logger.info(msg);
     } else {
-      process.stdout.write(`\n[SQL] ${namespace}.${id}\n${sql}\n`);
+      process.stdout.write(`\n${msg}\n`);
     }
   }
   return sql;
