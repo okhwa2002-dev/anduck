@@ -5,7 +5,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "dev": "tsx watch src/index.ts | pino-pretty --colorize --ignore pid,hostname",
+    "dev": "tsx watch --env-file=.env src/index.ts | pino-pretty --colorize --ignore pid,hostname",
     "build": "tsc -p tsconfig.json && node scripts/copy-mappers.mjs",
     "prestart": "pnpm run build",
     "start": "node dist/index.js",
