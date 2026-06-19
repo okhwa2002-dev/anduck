@@ -22,9 +22,15 @@ export function loadMappers() {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type MapperParams = Record<string, any>;
 
+const DB_LOG = process.env.DB_LOG === "true";
+
 export function buildSQL(namespace: string, id: string, params?: MapperParams): string {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return mybatisMapper.getStatement(namespace, id, (params ?? {}) as any);
+  const sql = mybatisMapper.getStatement(namespace, id, (params ?? {}) as any);
+  if (DB_LOG) {
+    process.stdout.write(`\n[SQL] ${namespace}.${id}\n${sql}\n`);
+  }
+  return sql;
 }
 
 export async function query<T = Record<string, unknown>>(
