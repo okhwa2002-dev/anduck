@@ -19,14 +19,12 @@ export function loadMappers() {
   mappersLoaded = true;
 }
 
-const FMT = { language: "sql" as const, indent: "  " };
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type MapperParams = Record<string, any>;
 
 export function buildSQL(namespace: string, id: string, params?: MapperParams): string {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return mybatisMapper.getStatement(namespace, id, (params ?? {}) as any, FMT);
+  return mybatisMapper.getStatement(namespace, id, (params ?? {}) as any);
 }
 
 export async function query<T = Record<string, unknown>>(
