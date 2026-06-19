@@ -835,14 +835,13 @@ export const S_Menu = {
     menuName: { type: "string" },
     path: { type: "string" },
     icon: { type: "string" },
-    roles: { type: "array", items: { type: "string" } },
     target: { type: "string", enum: ["_self", "_blank"] },
     activeYn: { type: "string", enum: ["Y", "N"] },
     sortOrder: { type: "integer" },
     children: { type: "array", items: {} },
     ...timestampProps,
   },
-  required: ["id", "groupId", "menuCode", "menuName", "roles", "target", "activeYn"],
+  required: ["id", "groupId", "menuCode", "menuName", "target", "activeYn"],
 } as const;
 
 export const S_MenuGroup = {
@@ -886,7 +885,6 @@ export const S_CreateMenuBody = {
     menuName: { type: "string" },
     path: { type: "string" },
     icon: { type: "string" },
-    roles: { type: "array", items: { type: "string", enum: ["MEMBER", "ADMIN", "SUPER_ADMIN"] } },
     target: { type: "string", enum: ["_self", "_blank"] },
     activeYn: { type: "string", enum: ["Y", "N"] },
     sortOrder: { type: "integer" },
@@ -900,7 +898,6 @@ export const S_UpdateMenuBody = {
     menuName: { type: "string" },
     path: { type: "string" },
     icon: { type: "string" },
-    roles: { type: "array", items: { type: "string", enum: ["MEMBER", "ADMIN", "SUPER_ADMIN"] } },
     target: { type: "string", enum: ["_self", "_blank"] },
     activeYn: { type: "string", enum: ["Y", "N"] },
     sortOrder: { type: "integer" },
