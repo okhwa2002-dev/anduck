@@ -119,7 +119,7 @@ export function FacilitiesIndexPage() {
                   {hg.headers.map((header) => (
                     <TableHead
                       key={header.id}
-                      className="cursor-pointer select-none"
+                      className="cursor-pointer select-none text-center"
                       onClick={header.column.getToggleSortingHandler()}
                     >
                       {flexRender(header.column.columnDef.header, header.getContext())}
