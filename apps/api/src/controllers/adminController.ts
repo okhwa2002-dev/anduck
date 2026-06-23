@@ -1,4 +1,4 @@
-import type { FastifyRequest } from "fastify";
+import type { FastifyRequest, FastifyReply } from "fastify";
 import type * as types from "@anduck/types";
 import adminService from "../services/adminService";
 import { notFound } from "../utils";
@@ -128,6 +128,16 @@ const adminController = {
 
   async removeFacility(req: Req<{ Params: { id: string } }>) {
     return adminService.removeAdminFacility(req.params.id);
+  },
+
+  async exportFacilities(req: Req<{ Querystring: types.ListQuery }>, reply: FastifyReply) {
+    const { buffer, title } = await adminService.exportAdminFacilities(req.query);
+    const ts = new Date().toISOString().replace(/\D/g, "").slice(0, 14);
+    const filename = encodeURIComponent(`${title.replace(/\s/g, "")}_${ts}.xlsx`);
+    reply
+      .header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+      .header("Content-Disposition", `attachment; filename*=UTF-8''${filename}`)
+      .send(buffer);
   },
 
   async listBanners(req: Req<{ Querystring: types.ListQuery }>) {

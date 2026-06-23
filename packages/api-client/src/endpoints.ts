@@ -16,6 +16,7 @@ import type {
   DashboardSummary,
   Facility,
   FacilityKind,
+  FilterCondition,
   GalleryItem,
   ListQuery,
   LoginRequest,
@@ -38,6 +39,14 @@ import type {
   UploadedFile,
   VillageProfile,
 } from "@anduck/types";
+
+type WithFilters<T> = Omit<T, "filters"> & { filters?: FilterCondition[] };
+
+function serializeFilters<T extends { filters?: FilterCondition[] }>(query?: T) {
+  if (!query) return undefined;
+  const { filters, ...rest } = query;
+  return { ...rest, ...(filters?.length ? { filters: JSON.stringify(filters) } : {}) };
+}
 
 export function createEndpoints(http: AxiosInstance) {
   return {
@@ -142,10 +151,11 @@ export function createEndpoints(http: AxiosInstance) {
     },
 
     files: {
-      uploadImage: (formData: unknown) =>
+      uploadImage: (formData: unknown, source?: string) =>
         http
           .post<UploadedFile>("/files/images", formData, {
             headers: { "Content-Type": "multipart/form-data" },
+            params: source ? { source } : undefined,
           })
           .then((r) => r.data),
     },
@@ -268,9 +278,9 @@ export function createEndpoints(http: AxiosInstance) {
       },
 
       facilities: {
-        list: (query?: ListQuery & { kind?: FacilityKind }) =>
+        list: (query?: WithFilters<ListQuery>) =>
           http
-            .get<Paginated<Facility>>("/admin/facilities", { params: query })
+            .get<Paginated<Facility>>("/admin/facilities", { params: serializeFilters(query) })
             .then((r) => r.data),
         get: (id: string) =>
           http.get<Facility>(`/admin/facilities/${id}`).then((r) => r.data),
@@ -282,6 +292,18 @@ export function createEndpoints(http: AxiosInstance) {
             .then((r) => r.data),
         remove: (id: string) =>
           http.delete<void>(`/admin/facilities/${id}`).then((r) => r.data),
+        export: (query?: WithFilters<ListQuery>) =>
+          http
+            .get<ArrayBuffer>("/admin/facilities/export", {
+              params: serializeFilters(query),
+              responseType: "arraybuffer",
+            })
+            .then((r) => {
+              const disposition = r.headers["content-disposition"] as string | undefined;
+              const match = disposition?.match(/filename\*=UTF-8''(.+)/);
+              const filename = match ? decodeURIComponent(match[1]) : "download.xlsx";
+              return { data: r.data, filename };
+            }),
       },
 
       banners: {

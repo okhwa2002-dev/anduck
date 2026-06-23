@@ -5,6 +5,7 @@ import imagesService from "./imagesService";
 import mappers from "./mappers";
 import accommodationService from "./accommodationService";
 import programService from "./programService";
+import { buildExcel } from "../utils/excel";
 
 const adminService = {
   // ─── re-exported from specialized services ────────────────────────────────
@@ -79,7 +80,7 @@ const adminService = {
   // ─── Reservations ─────────────────────────────────────────────────────────
   async listAdminReservations(q: types.ListQuery) {
     const lo = utils.limitOffsetSQL(q);
-    const params = { status: (q as any).status ?? null, kind: (q as any).kind ?? null, q: q.q ?? null };
+    const params = { status: utils.filterVal(q.filters, "status"), kind: utils.filterVal(q.filters, "kind"), q: q.q ?? null };
     const [rows, countRow] = await Promise.all([
       db.query("reservation", "listReservations", { ...params, limitOffset: lo }),
       q.all ? null : db.queryOne<{ total: string }>("reservation", "countReservations", params),
@@ -204,7 +205,17 @@ const adminService = {
 
   async listAdminFacilities(q: types.ListQuery) {
     const lo = utils.limitOffsetSQL(q);
-    const params = { activeYn: q.useYn ?? null, mainOpenYn: null, kind: (q as any).kind ?? null, q: q.q ?? null };
+    const toArr = (field: string, fallback?: string | null) => {
+      const vals = utils.filterVals(q.filters, field);
+      if (vals) return utils.pgTextArr(vals);
+      return fallback ? utils.pgTextArr([fallback]) : null;
+    };
+    const params = {
+      activeYns: toArr("activeYn", q.useYn),
+      mainOpenYns: toArr("mainOpenYn"),
+      kinds: toArr("kind"),
+      q: q.q ?? null,
+    };
     const [rows, countRow] = await Promise.all([
       db.query("facility", "listFacilities", { ...params, limitOffset: lo }),
       q.all ? null : db.queryOne<{ total: string }>("facility", "countFacilities", params),
@@ -258,6 +269,43 @@ const adminService = {
 
   async removeAdminFacility(id: string) {
     return adminService.updateAdminFacility(id, { activeYn: "N" });
+  },
+
+  async exportAdminFacilities(q: types.ListQuery) {
+    const toArr = (field: string, fallback?: string | null) => {
+      const vals = utils.filterVals(q.filters, field);
+      if (vals) return utils.pgTextArr(vals);
+      return fallback ? utils.pgTextArr([fallback]) : null;
+    };
+    const params = {
+      activeYns: toArr("activeYn", q.useYn),
+      mainOpenYns: toArr("mainOpenYn"),
+      kinds: toArr("kind"),
+      q: q.q ?? null,
+    };
+    const rows = (await db.query("facility", "listFacilities", { ...params, limitOffset: "" })) as any[];
+
+    const KIND_LABEL: Record<string, string> = { VILLAGE: "마을시설", NEARBY: "주변관광지" };
+    const data = rows.map((r) => ({
+      kind: KIND_LABEL[r.kind] ?? r.kind,
+      name: r.name,
+      summary: r.summary ?? "",
+      mainOpenYn: r.mainOpenYn === "Y" ? "노출" : "미노출",
+      activeYn: r.activeYn === "Y" ? "활성" : "비활성",
+      createdAt: r.createdAt ? new Date(r.createdAt).toLocaleDateString("ko-KR") : "",
+    }));
+
+    const title = "시설 목록";
+    const today = `작성일자 : ${new Date().toLocaleDateString("ko-KR")}`;
+    const buffer = await buildExcel(title, [
+      { header: "구분",     key: "kind",       width: 14 },
+      { header: "시설명",   key: "name",       width: 30 },
+      { header: "요약",     key: "summary",    width: 40, align: "left" },
+      { header: "메인 노출", key: "mainOpenYn", width: 12 },
+      { header: "활성",     key: "activeYn",   width: 10 },
+      { header: "등록일",   key: "createdAt",  width: 14 },
+    ], data, { title, date: today });
+    return { buffer, title };
   },
 
   // ─── Banners ──────────────────────────────────────────────────────────────
