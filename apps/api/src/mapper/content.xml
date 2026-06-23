@@ -36,7 +36,6 @@
       <if test="phone != null">phone = #{phone},</if>
       <if test="email != null">email = #{email},</if>
       <if test="imageIds != null">image_ids = ${imageIds},</if>
-      updated_at = CURRENT_TIMESTAMP
     </set>
     WHERE id = ${id}
     RETURNING <include refid="profileCols"/>

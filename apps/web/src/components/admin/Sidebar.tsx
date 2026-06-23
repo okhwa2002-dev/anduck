@@ -2,21 +2,18 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { ExternalLink } from "lucide-react";
+import useSWR from "swr";
 import { Button } from "@/components/ui/button";
-
-const NAV_ITEMS = [
-  { label: "대시보드", href: "/admin" },
-  { label: "프로그램", href: "/admin/programs" },
-  { label: "숙소", href: "/admin/accommodations" },
-  { label: "예약", href: "/admin/reservations" },
-  { label: "공지사항", href: "/admin/notices" },
-  { label: "갤러리", href: "/admin/gallery" },
-  { label: "시설", href: "/admin/facilities" },
-];
+import { menuApi } from "@/api/admin";
 
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
+
+  const { data: menus } = useSWR("admin-menus", () =>
+    menuApi.listForUser("WEB_ADMIN"),
+  );
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -29,21 +26,30 @@ export function Sidebar() {
         <span className="font-bold text-green-800">안덕 관리자</span>
       </div>
       <nav className="flex-1 overflow-y-auto py-4">
-        {NAV_ITEMS.map((item) => (
+        {menus?.map((menu) => (
           <Link
-            key={item.href}
-            href={item.href}
+            key={menu.id}
+            href={menu.path ?? "#"}
             className={`flex items-center px-4 py-2.5 text-sm transition-colors hover:bg-gray-100 ${
-              pathname === item.href
+              pathname === menu.path
                 ? "bg-green-50 font-medium text-green-800"
                 : "text-gray-600"
             }`}
           >
-            {item.label}
+            {menu.menuName}
           </Link>
         ))}
       </nav>
-      <div className="border-t p-4">
+      <div className="space-y-2 border-t p-4">
+        <Button
+          variant="secondary"
+          size="sm"
+          className="w-full"
+          onClick={() => router.push("/")}
+        >
+          <ExternalLink className="size-3.5" />
+          공개사이트
+        </Button>
         <Button
           variant="outline"
           size="sm"

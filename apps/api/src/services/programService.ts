@@ -7,7 +7,7 @@ import mappers from "./mappers";
 const programService = {
   async listPrograms(q: types.ListQuery = {}) {
     const lo = utils.limitOffsetSQL(q);
-    const params = { activeYn: q.useYn ?? "Y", featuredYn: q.featuredYn ?? null, q: q.q ?? null };
+    const params = { activeYn: q.useYn ?? "Y", mainOpenYn: q.mainOpenYn ?? null, q: q.q ?? null };
     const [rows, countRow] = await Promise.all([
       db.query("program", "listPrograms", { ...params, limitOffset: lo }),
       q.all ? null : db.queryOne<{ total: string }>("program", "countPrograms", params),
@@ -38,7 +38,7 @@ const programService = {
       preparationNotes: body.preparationNotes ?? null,
       mainImageId: utils.pgId(body.mainImageId),
       imageIds: utils.pgBigintArr(body.imageIds),
-      featuredYn: body.featuredYn ?? "N",
+      mainOpenYn: body.mainOpenYn ?? "N",
       activeYn: body.activeYn ?? "Y",
       sortOrder: body.sortOrder ?? 0,
       createdBy: utils.pgId(userId),
@@ -63,7 +63,7 @@ const programService = {
       preparationNotes: body.preparationNotes ?? null,
       mainImageId: body.mainImageId !== undefined ? utils.pgId(body.mainImageId) : null,
       imageIds: body.imageIds != null ? utils.pgBigintArr(body.imageIds) : null,
-      featuredYn: body.featuredYn ?? null,
+      mainOpenYn: body.mainOpenYn ?? null,
       activeYn: body.activeYn ?? null,
       sortOrder: body.sortOrder ?? null,
       updatedBy: utils.pgId(userId),

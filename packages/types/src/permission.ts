@@ -8,14 +8,6 @@ export interface Permission extends Timestamps, Sortable {
   useYn: YN;
 }
 
-export interface UserTypePermission {
-  id: string;
-  userType: string;
-  permissionId: string;
-  createdAt: string;
-  permission?: Permission;
-}
-
 export interface UserPermission {
   id: string;
   userId: string;
@@ -40,11 +32,6 @@ export interface CreatePermissionInput {
 }
 
 export type UpdatePermissionInput = Partial<CreatePermissionInput>;
-
-export interface AssignUserTypePermissionInput {
-  userType: string;
-  permissionIds: string[];
-}
 
 export interface AssignUserPermissionInput {
   userId: string;

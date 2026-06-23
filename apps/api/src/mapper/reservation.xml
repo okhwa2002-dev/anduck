@@ -98,7 +98,6 @@
     <set>
       status = #{status},
       <if test="adminMemo != null">admin_memo = #{adminMemo},</if>
-      updated_at = CURRENT_TIMESTAMP
     </set>
     WHERE id = ${id}
     RETURNING <include refid="cols"/>

@@ -5,7 +5,7 @@
 
   <sql id="cols">
     id::text AS id, url, alt,
-    mime_type AS "mimeType",
+    content_type AS "mimeType",
     size,
     created_at AS "createdAt",
     created_by::text AS "createdBy"
@@ -18,7 +18,7 @@
   </select>
 
   <insert id="createImage">
-    INSERT INTO image (url, alt, mime_type, size, created_by)
+    INSERT INTO image (url, alt, content_type, size, created_by)
     VALUES (#{url}, #{alt}, #{mimeType}, #{size}, ${createdBy})
     RETURNING <include refid="cols"/>
   </insert>

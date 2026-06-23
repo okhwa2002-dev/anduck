@@ -1,15 +1,30 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
+import { randomUUID } from "crypto";
 import authService from "../services/authService";
 import { BadRequestError, ConflictError } from "../utils/errors";
+
+type AuthUser = {
+  id: string;
+  email: string;
+  userType: string;
+};
+
+function createJwtPayload(user: AuthUser) {
+  return {
+    sub: user.id,
+    email: user.email,
+    userType: user.userType,
+    jti: randomUUID(),
+  };
+}
 
 const authController = {
   async login(req: FastifyRequest<{ Body: { loginId: string; password: string } }>, reply: FastifyReply) {
     const { loginId, password } = req.body;
     const user = await authService.validateCredentials(loginId, password);
     if (!user) return reply.code(401).send({ message: "이메일 또는 비밀번호가 올바르지 않습니다" });
-    const payload = { sub: user.id, email: user.email, userType: user.userType };
-    const accessToken = req.server.jwt.sign(payload, { expiresIn: process.env.JWT_EXPIRES_IN ?? "15m" });
-    const refreshToken = req.server.jwt.sign(payload, { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN ?? "7d" });
+    const accessToken = req.server.jwt.sign(createJwtPayload(user), { expiresIn: process.env.JWT_EXPIRES_IN ?? "15m" });
+    const refreshToken = req.server.jwt.sign(createJwtPayload(user), { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN ?? "7d" });
     await authService.saveRefreshToken(user.id, refreshToken, req.headers["user-agent"]);
     return { user, tokens: { accessToken, refreshToken } };
   },
@@ -18,9 +33,8 @@ const authController = {
     const { loginId, email, password, name, phone } = req.body;
     try {
       const user = await authService.createUser(loginId, email, password, name, phone);
-      const payload = { sub: user.id, email: user.email, userType: user.userType };
-      const accessToken = req.server.jwt.sign(payload, { expiresIn: process.env.JWT_EXPIRES_IN ?? "15m" });
-      const refreshToken = req.server.jwt.sign(payload, { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN ?? "7d" });
+      const accessToken = req.server.jwt.sign(createJwtPayload(user), { expiresIn: process.env.JWT_EXPIRES_IN ?? "15m" });
+      const refreshToken = req.server.jwt.sign(createJwtPayload(user), { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN ?? "7d" });
       await authService.saveRefreshToken(user.id, refreshToken, req.headers["user-agent"]);
       return reply.code(201).send({ user, tokens: { accessToken, refreshToken } });
     } catch (err: any) {
@@ -39,9 +53,8 @@ const authController = {
     const user = await authService.getUserById(stored.userId);
     if (!user) return reply.code(401).send({ message: "사용자를 찾을 수 없습니다" });
     await authService.revokeToken(stored.userId, refreshToken);
-    const payload = { sub: user.id, email: user.email, userType: user.userType };
-    const accessToken = req.server.jwt.sign(payload, { expiresIn: process.env.JWT_EXPIRES_IN ?? "15m" });
-    const newRefreshToken = req.server.jwt.sign(payload, { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN ?? "7d" });
+    const accessToken = req.server.jwt.sign(createJwtPayload(user), { expiresIn: process.env.JWT_EXPIRES_IN ?? "15m" });
+    const newRefreshToken = req.server.jwt.sign(createJwtPayload(user), { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN ?? "7d" });
     await authService.saveRefreshToken(user.id, newRefreshToken, req.headers["user-agent"]);
     return { user, tokens: { accessToken, refreshToken: newRefreshToken } };
   },

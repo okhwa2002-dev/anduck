@@ -19,6 +19,7 @@ import type {
   GalleryItem,
   ListQuery,
   LoginRequest,
+  Menu,
   Notice,
   Paginated,
   Program,
@@ -49,6 +50,13 @@ export function createEndpoints(http: AxiosInstance) {
           .post<AuthResponse>("/auth/refresh", { refreshToken })
           .then((r) => r.data),
       logout: () => http.post<void>("/auth/logout").then((r) => r.data),
+    },
+
+    menus: {
+      listForUser: (groupCode?: string) =>
+        http
+          .get<Menu[]>("/auth/menus", { params: { groupCode } })
+          .then((r) => r.data),
     },
 
     home: {
@@ -264,6 +272,8 @@ export function createEndpoints(http: AxiosInstance) {
           http
             .get<Paginated<Facility>>("/admin/facilities", { params: query })
             .then((r) => r.data),
+        get: (id: string) =>
+          http.get<Facility>(`/admin/facilities/${id}`).then((r) => r.data),
         create: (body: CreateFacilityInput) =>
           http.post<Facility>("/admin/facilities", body).then((r) => r.data),
         update: (id: string, body: UpdateFacilityInput) =>

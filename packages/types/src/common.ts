@@ -30,6 +30,7 @@ export interface ListQuery extends PaginationQuery {
   q?: string;
   useYn?: YN;
   featuredYn?: YN;
+  mainOpenYn?: YN;
 }
 
 export interface ImageRef {

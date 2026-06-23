@@ -1,10 +1,31 @@
-﻿-- Anduck API database schema
+-- Anduck API database schema
 -- Target: PostgreSQL
 -- Source of truth: apps/api/prisma/schema.prisma
 -- Naming convention: all identifiers (tables, enums, columns) = snake_case
 -- Boolean columns: *_yn CHAR(1) DEFAULT 'Y'/'N', CHECK IN ('Y','N')
 
 -- user_type: TEXT 컬럼으로 관리 (MEMBER·ADMIN·SUPER_ADMIN)
+
+SET TIME ZONE 'Asia/Seoul';
+ALTER DATABASE anduck SET timezone TO 'Asia/Seoul';
+
+CREATE OR REPLACE FUNCTION current_kst_timestamp()
+RETURNS TIMESTAMP(3)
+LANGUAGE sql
+STABLE
+AS $$
+  SELECT timezone('Asia/Seoul', now())::TIMESTAMP(3);
+$$;
+
+CREATE OR REPLACE FUNCTION set_updated_at_kst()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  NEW.updated_at = current_kst_timestamp();
+  RETURN NEW;
+END;
+$$;
 
 CREATE TYPE accommodation_type AS ENUM (
   'HWANGTO',
@@ -60,9 +81,9 @@ CREATE TABLE "user" (
   "name"          TEXT NOT NULL,
   "phone"         TEXT,
   "user_type"     TEXT NOT NULL DEFAULT 'MEMBER',
-  "created_at"    TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at"    TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "created_by"    BIGINT,
-  "updated_at"    TIMESTAMP(3) NOT NULL,
+  "updated_at"    TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "updated_by"    BIGINT
 );
 
@@ -89,9 +110,9 @@ CREATE TABLE "image" (
   "filename"     TEXT,
   "content_type" TEXT,
   "size"         INTEGER,
-  "created_at"   TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at"   TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "created_by"   BIGINT,
-  "updated_at"   TIMESTAMP(3) NOT NULL,
+  "updated_at"   TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "updated_by"   BIGINT
 );
 
@@ -117,9 +138,9 @@ CREATE TABLE "code_group" (
   "description" TEXT,
   "use_yn"   CHAR(1) NOT NULL DEFAULT 'Y' CONSTRAINT "code_group_use_yn_chk" CHECK ("use_yn" IN ('Y','N')),
   "sort_order"  INTEGER NOT NULL DEFAULT 0,
-  "created_at"  TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at"  TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "created_by"  BIGINT,
-  "updated_at"  TIMESTAMP(3) NOT NULL,
+  "updated_at"  TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "updated_by"  BIGINT
 );
 
@@ -147,9 +168,9 @@ CREATE TABLE "code" (
   "extra"       JSONB,
   "use_yn"   CHAR(1) NOT NULL DEFAULT 'Y' CONSTRAINT "code_use_yn_chk" CHECK ("use_yn" IN ('Y','N')),
   "sort_order"  INTEGER NOT NULL DEFAULT 0,
-  "created_at"  TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at"  TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "created_by"  BIGINT,
-  "updated_at"  TIMESTAMP(3) NOT NULL,
+  "updated_at"  TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "updated_by"  BIGINT,
   CONSTRAINT "code_group_id_fkey"
     FOREIGN KEY ("group_id") REFERENCES "code_group"("id")
@@ -184,9 +205,9 @@ CREATE TABLE "menu_group" (
   "description" TEXT,
   "use_yn"   CHAR(1) NOT NULL DEFAULT 'Y' CONSTRAINT "menu_group_use_yn_chk" CHECK ("use_yn" IN ('Y','N')),
   "sort_order"  INTEGER NOT NULL DEFAULT 0,
-  "created_at"  TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at"  TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "created_by"  BIGINT,
-  "updated_at"  TIMESTAMP(3) NOT NULL,
+  "updated_at"  TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "updated_by"  BIGINT
 );
 
@@ -213,13 +234,12 @@ CREATE TABLE "menu" (
   "menu_name"   TEXT NOT NULL,
   "path"        TEXT,
   "icon"        TEXT,
-  "roles"       TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
   "target"      TEXT NOT NULL DEFAULT '_self',
   "active_yn"   CHAR(1) NOT NULL DEFAULT 'Y' CONSTRAINT "menu_active_yn_chk" CHECK ("active_yn" IN ('Y','N')),
   "sort_order"  INTEGER NOT NULL DEFAULT 0,
-  "created_at"  TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at"  TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "created_by"  BIGINT,
-  "updated_at"  TIMESTAMP(3) NOT NULL,
+  "updated_at"  TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "updated_by"  BIGINT,
   CONSTRAINT "menu_group_id_fkey"
     FOREIGN KEY ("group_id") REFERENCES "menu_group"("id")
@@ -231,7 +251,7 @@ CREATE TABLE "menu" (
     UNIQUE ("group_id", "menu_code")
 );
 
-COMMENT ON TABLE  "menu"               IS '메뉴 (계층 구조 지원, Role 기반 접근 제어)';
+COMMENT ON TABLE  "menu"               IS '메뉴 (계층 구조 지원, permission_menu로 접근 제어)';
 COMMENT ON COLUMN "menu"."id"          IS '메뉴 고유 ID';
 COMMENT ON COLUMN "menu"."group_id"    IS '소속 메뉴 그룹 ID (menu_group.id)';
 COMMENT ON COLUMN "menu"."parent_id"   IS '상위 메뉴 ID (null이면 최상위 메뉴)';
@@ -239,7 +259,6 @@ COMMENT ON COLUMN "menu"."menu_code"   IS '메뉴 코드 (예: ABOUT, PROGRAMS, 
 COMMENT ON COLUMN "menu"."menu_name"   IS '메뉴명 (예: 마을소개, 체험프로그램, 숙소관리)';
 COMMENT ON COLUMN "menu"."path"        IS '라우트 경로 (예: /about, /admin/rooms)';
 COMMENT ON COLUMN "menu"."icon"        IS '아이콘명 (예: home, calendar, settings)';
-COMMENT ON COLUMN "menu"."roles"       IS '접근 허용 Role 목록 (빈 배열이면 전체 공개, 예: {ADMIN,SUPER_ADMIN})';
 COMMENT ON COLUMN "menu"."target"      IS '링크 타겟 (_self: 현재창, _blank: 새창)';
 COMMENT ON COLUMN "menu"."active_yn"   IS '노출 여부 (Y: 노출, N: 숨김)';
 COMMENT ON COLUMN "menu"."sort_order"  IS '같은 부모 내 정렬 순서 (오름차순)';
@@ -262,9 +281,9 @@ CREATE TABLE "permission" (
   "description" TEXT,
   "use_yn"      CHAR(1) NOT NULL DEFAULT 'Y' CONSTRAINT "permission_use_yn_chk" CHECK ("use_yn" IN ('Y','N')),
   "sort_order"  INTEGER NOT NULL DEFAULT 0,
-  "created_at"  TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at"  TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "created_by"  BIGINT,
-  "updated_at"  TIMESTAMP(3) NOT NULL,
+  "updated_at"  TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "updated_by"  BIGINT
 );
 
@@ -281,39 +300,13 @@ COMMENT ON COLUMN "permission"."updated_at"       IS '수정일시';
 COMMENT ON COLUMN "permission"."updated_by"       IS '수정자 ID (user.id 소프트 참조)';
 
 -- ===========================================================================
--- user_type_permission (사용자 유형별 기본 권한 세트 — 회원가입 시 초기화용)
--- ===========================================================================
-CREATE TABLE "user_type_permission" (
-  "id"             BIGSERIAL PRIMARY KEY,
-  "user_type"      TEXT NOT NULL,
-  "permission_id"  BIGINT NOT NULL,
-  "created_at"     TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "created_by"     BIGINT,
-  CONSTRAINT "user_type_permission_permission_id_fkey"
-    FOREIGN KEY ("permission_id") REFERENCES "permission"("id")
-    ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT "user_type_permission_uq"
-    UNIQUE ("user_type", "permission_id")
-);
-
-COMMENT ON TABLE  "user_type_permission"                   IS '사용자 유형별 기본 권한 세트 (회원가입 시 user_permission에 복사)';
-COMMENT ON COLUMN "user_type_permission"."id"              IS '매핑 고유 ID';
-COMMENT ON COLUMN "user_type_permission"."user_type"       IS '사용자 유형 (MEMBER·ADMIN·SUPER_ADMIN)';
-COMMENT ON COLUMN "user_type_permission"."permission_id"   IS '기본 부여 권한 ID (permission.id)';
-COMMENT ON COLUMN "user_type_permission"."created_at"      IS '생성일시';
-COMMENT ON COLUMN "user_type_permission"."created_by"      IS '생성자 ID (user.id 소프트 참조)';
-
-CREATE INDEX "user_type_permission_user_type_idx"    ON "user_type_permission" ("user_type");
-CREATE INDEX "user_type_permission_permission_id_idx" ON "user_type_permission" ("permission_id");
-
--- ===========================================================================
 -- user_permission (사용자별 실제 권한 — 개별 커스터마이징 가능)
 -- ===========================================================================
 CREATE TABLE "user_permission" (
   "id"             BIGSERIAL PRIMARY KEY,
   "user_id"        BIGINT NOT NULL,
   "permission_id"  BIGINT NOT NULL,
-  "created_at"     TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at"     TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "created_by"     BIGINT,
   CONSTRAINT "user_permission_user_id_fkey"
     FOREIGN KEY ("user_id") REFERENCES "user"("id")
@@ -342,7 +335,7 @@ CREATE TABLE "permission_menu" (
   "id"             BIGSERIAL PRIMARY KEY,
   "permission_id"  BIGINT NOT NULL,
   "menu_id"        BIGINT NOT NULL,
-  "created_at"     TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at"     TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "created_by"     BIGINT,
   CONSTRAINT "permission_menu_permission_id_fkey"
     FOREIGN KEY ("permission_id") REFERENCES "permission"("id")
@@ -381,12 +374,12 @@ CREATE TABLE "program" (
   "preparation_notes" TEXT,
   "main_image_id"     BIGINT,
   "image_ids"         BIGINT[] NOT NULL DEFAULT ARRAY[]::BIGINT[],
-  "featured_yn"       CHAR(1) NOT NULL DEFAULT 'N' CONSTRAINT "program_featured_yn_chk" CHECK ("featured_yn" IN ('Y','N')),
+  "main_open_yn"      CHAR(1) NOT NULL DEFAULT 'N' CONSTRAINT "program_main_open_yn_chk" CHECK ("main_open_yn" IN ('Y','N')),
   "active_yn"         CHAR(1) NOT NULL DEFAULT 'Y' CONSTRAINT "program_active_yn_chk"   CHECK ("active_yn"   IN ('Y','N')),
   "sort_order"        INTEGER NOT NULL DEFAULT 0,
-  "created_at"        TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at"        TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "created_by"        BIGINT,
-  "updated_at"        TIMESTAMP(3) NOT NULL,
+  "updated_at"        TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "updated_by"        BIGINT
 );
 
@@ -404,7 +397,7 @@ COMMENT ON COLUMN "program"."operating_hours"  IS '운영 시간 문자열 (예:
 COMMENT ON COLUMN "program"."preparation_notes" IS '준비물 및 유의사항';
 COMMENT ON COLUMN "program"."main_image_id"    IS '대표 이미지 ID (image.id 소프트 참조)';
 COMMENT ON COLUMN "program"."image_ids"        IS '추가 이미지 ID 목록 (image.id 소프트 참조)';
-COMMENT ON COLUMN "program"."featured_yn"      IS '메인 페이지 노출 여부 (Y: 노출, N: 미노출)';
+COMMENT ON COLUMN "program"."main_open_yn"     IS '메인 페이지 노출 여부 (Y: 노출, N: 미노출)';
 COMMENT ON COLUMN "program"."active_yn"        IS '활성화(공개) 여부 (Y: 공개, N: 비공개)';
 COMMENT ON COLUMN "program"."sort_order"       IS '목록 정렬 순서 (오름차순)';
 COMMENT ON COLUMN "program"."created_at"       IS '생성일시';
@@ -424,9 +417,9 @@ CREATE TABLE "program_session" (
   "start_time"   TEXT NOT NULL,
   "capacity"     INTEGER,
   "active_yn"    CHAR(1) NOT NULL DEFAULT 'Y' CONSTRAINT "program_session_active_yn_chk" CHECK ("active_yn" IN ('Y','N')),
-  "created_at"   TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at"   TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "created_by"   BIGINT,
-  "updated_at"   TIMESTAMP(3) NOT NULL,
+  "updated_at"   TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "updated_by"   BIGINT,
   CONSTRAINT "program_session_program_id_fkey"
     FOREIGN KEY ("program_id") REFERENCES "program"("id")
@@ -465,9 +458,9 @@ CREATE TABLE "accommodation" (
   "featured_yn"    CHAR(1) NOT NULL DEFAULT 'N' CONSTRAINT "accommodation_featured_yn_chk" CHECK ("featured_yn" IN ('Y','N')),
   "active_yn"      CHAR(1) NOT NULL DEFAULT 'Y' CONSTRAINT "accommodation_active_yn_chk"   CHECK ("active_yn"   IN ('Y','N')),
   "sort_order"     INTEGER NOT NULL DEFAULT 0,
-  "created_at"     TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at"     TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "created_by"     BIGINT,
-  "updated_at"     TIMESTAMP(3) NOT NULL,
+  "updated_at"     TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "updated_by"     BIGINT
 );
 
@@ -509,9 +502,9 @@ CREATE TABLE "room" (
   "image_ids"         BIGINT[] NOT NULL DEFAULT ARRAY[]::BIGINT[],
   "active_yn"         CHAR(1) NOT NULL DEFAULT 'Y' CONSTRAINT "room_active_yn_chk" CHECK ("active_yn" IN ('Y','N')),
   "sort_order"        INTEGER NOT NULL DEFAULT 0,
-  "created_at"        TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at"        TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "created_by"        BIGINT,
-  "updated_at"        TIMESTAMP(3) NOT NULL,
+  "updated_at"        TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "updated_by"        BIGINT,
   CONSTRAINT "room_accommodation_id_fkey"
     FOREIGN KEY ("accommodation_id") REFERENCES "accommodation"("id")
@@ -550,9 +543,9 @@ CREATE TABLE "season_rate" (
   "room_id"    BIGINT,
   "price"      INTEGER NOT NULL,
   "use_yn"  CHAR(1) NOT NULL DEFAULT 'Y' CONSTRAINT "season_rate_use_yn_chk" CHECK ("use_yn" IN ('Y','N')),
-  "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at" TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "created_by" BIGINT,
-  "updated_at" TIMESTAMP(3) NOT NULL,
+  "updated_at" TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "updated_by" BIGINT,
   CONSTRAINT "season_rate_room_id_fkey"
     FOREIGN KEY ("room_id") REFERENCES "room"("id")
@@ -587,9 +580,9 @@ CREATE TABLE "notice" (
   "pinned_yn"  CHAR(1) NOT NULL DEFAULT 'N' CONSTRAINT "notice_pinned_yn_chk" CHECK ("pinned_yn" IN ('Y','N')),
   "open_yn"  CHAR(1) NOT NULL DEFAULT 'Y' CONSTRAINT "notice_open_yn_chk"  CHECK ("open_yn"  IN ('Y','N')),
   "author_id"  BIGINT NOT NULL,
-  "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at" TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "created_by" BIGINT,
-  "updated_at" TIMESTAMP(3) NOT NULL,
+  "updated_at" TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "updated_by" BIGINT,
   CONSTRAINT "notice_author_id_fkey"
     FOREIGN KEY ("author_id") REFERENCES "user"("id")
@@ -620,9 +613,9 @@ CREATE TABLE "gallery_item" (
   "image_id"    BIGINT NOT NULL,
   "active_yn"   CHAR(1) NOT NULL DEFAULT 'Y' CONSTRAINT "gallery_item_active_yn_chk" CHECK ("active_yn" IN ('Y','N')),
   "sort_order"  INTEGER NOT NULL DEFAULT 0,
-  "created_at"  TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at"  TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "created_by"  BIGINT,
-  "updated_at"  TIMESTAMP(3) NOT NULL,
+  "updated_at"  TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "updated_by"  BIGINT
 );
 
@@ -654,12 +647,12 @@ CREATE TABLE "facility" (
   "longitude"     DOUBLE PRECISION,
   "main_image_id" BIGINT,
   "image_ids"     BIGINT[] NOT NULL DEFAULT ARRAY[]::BIGINT[],
-  "featured_yn"   CHAR(1) NOT NULL DEFAULT 'N' CONSTRAINT "facility_featured_yn_chk" CHECK ("featured_yn" IN ('Y','N')),
+  "main_open_yn"  CHAR(1) NOT NULL DEFAULT 'N' CONSTRAINT "facility_main_open_yn_chk" CHECK ("main_open_yn" IN ('Y','N')),
   "active_yn"     CHAR(1) NOT NULL DEFAULT 'Y' CONSTRAINT "facility_active_yn_chk"   CHECK ("active_yn"   IN ('Y','N')),
   "sort_order"    INTEGER NOT NULL DEFAULT 0,
-  "created_at"    TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at"    TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "created_by"    BIGINT,
-  "updated_at"    TIMESTAMP(3) NOT NULL,
+  "updated_at"    TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "updated_by"    BIGINT
 );
 
@@ -674,7 +667,7 @@ COMMENT ON COLUMN "facility"."latitude"     IS '위도 (지도 마커)';
 COMMENT ON COLUMN "facility"."longitude"    IS '경도 (지도 마커)';
 COMMENT ON COLUMN "facility"."main_image_id" IS '대표 이미지 ID (image.id 소프트 참조)';
 COMMENT ON COLUMN "facility"."image_ids"    IS '추가 이미지 ID 목록 (image.id 소프트 참조)';
-COMMENT ON COLUMN "facility"."featured_yn"  IS '메인 페이지 노출 여부 (Y: 노출, N: 미노출)';
+COMMENT ON COLUMN "facility"."main_open_yn" IS '메인 페이지 노출 여부 (Y: 노출, N: 미노출)';
 COMMENT ON COLUMN "facility"."active_yn"    IS '활성화(공개) 여부 (Y: 공개, N: 비공개)';
 COMMENT ON COLUMN "facility"."sort_order"   IS '목록 정렬 순서 (오름차순)';
 COMMENT ON COLUMN "facility"."created_at"   IS '생성일시';
@@ -696,9 +689,9 @@ CREATE TABLE "banner" (
   "link_value" TEXT,
   "active_yn"  CHAR(1) NOT NULL DEFAULT 'Y' CONSTRAINT "banner_active_yn_chk" CHECK ("active_yn" IN ('Y','N')),
   "sort_order" INTEGER NOT NULL DEFAULT 0,
-  "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at" TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "created_by" BIGINT,
-  "updated_at" TIMESTAMP(3) NOT NULL,
+  "updated_at" TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "updated_by" BIGINT
 );
 
@@ -731,9 +724,9 @@ CREATE TABLE "village_profile" (
   "phone"       TEXT,
   "email"       TEXT,
   "image_ids"   BIGINT[] NOT NULL DEFAULT ARRAY[]::BIGINT[],
-  "created_at"  TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at"  TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "created_by"  BIGINT,
-  "updated_at"  TIMESTAMP(3) NOT NULL,
+  "updated_at"  TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "updated_by"  BIGINT
 );
 
@@ -760,9 +753,9 @@ CREATE TABLE "refund_policy" (
   "name"        TEXT NOT NULL,
   "description" TEXT,
   "use_yn"   CHAR(1) NOT NULL DEFAULT 'Y' CONSTRAINT "refund_policy_use_yn_chk" CHECK ("use_yn" IN ('Y','N')),
-  "created_at"  TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at"  TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "created_by"  BIGINT,
-  "updated_at"  TIMESTAMP(3) NOT NULL,
+  "updated_at"  TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "updated_by"  BIGINT
 );
 
@@ -786,9 +779,9 @@ CREATE TABLE "refund_policy_rule" (
   "refund_rate"  INTEGER NOT NULL,
   "description"  TEXT,
   "sort_order"   INTEGER NOT NULL DEFAULT 0,
-  "created_at"   TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at"   TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "created_by"   BIGINT,
-  "updated_at"   TIMESTAMP(3) NOT NULL,
+  "updated_at"   TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "updated_by"   BIGINT,
   CONSTRAINT "refund_policy_rule_policy_id_fkey"
     FOREIGN KEY ("policy_id") REFERENCES "refund_policy"("id")
@@ -836,9 +829,9 @@ CREATE TABLE "reservation" (
   "total_price"     INTEGER,
   "request_memo"    TEXT,
   "admin_memo"      TEXT,
-  "created_at"      TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at"      TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "created_by"      BIGINT,
-  "updated_at"      TIMESTAMP(3) NOT NULL,
+  "updated_at"      TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "updated_by"      BIGINT,
   CONSTRAINT "reservation_refund_policy_id_fkey"
     FOREIGN KEY ("refund_policy_id") REFERENCES "refund_policy"("id")
@@ -900,10 +893,10 @@ CREATE TABLE "reservation_cancel" (
   "refund_status"   refund_status NOT NULL DEFAULT 'PENDING',
   "policy_rule_id"  BIGINT,
   "refund_memo"     TEXT,
-  "cancelled_at"    TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "created_at"      TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "cancelled_at"    TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
+  "created_at"      TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "created_by"      BIGINT,
-  "updated_at"      TIMESTAMP(3) NOT NULL,
+  "updated_at"      TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "updated_by"      BIGINT,
   CONSTRAINT "reservation_cancel_reservation_id_fkey"
     FOREIGN KEY ("reservation_id") REFERENCES "reservation"("id")
@@ -942,7 +935,7 @@ CREATE TABLE "refresh_token" (
   "user_agent" TEXT,
   "expires_at" TIMESTAMP(3) NOT NULL,
   "revoked_at" TIMESTAMP(3),
-  "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at" TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "created_by" BIGINT,
   CONSTRAINT "refresh_token_user_id_fkey"
     FOREIGN KEY ("user_id") REFERENCES "user"("id")
@@ -970,9 +963,9 @@ CREATE TABLE "push_token" (
   "token"      TEXT NOT NULL UNIQUE,
   "platform"   TEXT NOT NULL,
   "active_yn"  CHAR(1) NOT NULL DEFAULT 'Y' CONSTRAINT "push_token_active_yn_chk" CHECK ("active_yn" IN ('Y','N')),
-  "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at" TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "created_by" BIGINT,
-  "updated_at" TIMESTAMP(3) NOT NULL,
+  "updated_at" TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "updated_by" BIGINT,
   CONSTRAINT "push_token_user_id_fkey"
     FOREIGN KEY ("user_id") REFERENCES "user"("id")
@@ -991,6 +984,47 @@ COMMENT ON COLUMN "push_token"."updated_at" IS '수정일시';
 COMMENT ON COLUMN "push_token"."updated_by" IS '수정자 ID (user.id 소프트 참조)';
 
 CREATE INDEX "push_token_user_id_idx" ON "push_token" ("user_id");
+
+-- ===========================================================================
+-- updated_at auto refresh (DB-level audit timestamp)
+-- ===========================================================================
+DO $$
+DECLARE
+  table_name text;
+BEGIN
+  FOREACH table_name IN ARRAY ARRAY[
+    'user',
+    'image',
+    'code_group',
+    'code',
+    'menu_group',
+    'menu',
+    'permission',
+    'program',
+    'program_session',
+    'accommodation',
+    'room',
+    'season_rate',
+    'notice',
+    'gallery_item',
+    'facility',
+    'banner',
+    'village_profile',
+    'refund_policy',
+    'refund_policy_rule',
+    'reservation',
+    'reservation_cancel',
+    'push_token'
+  ] LOOP
+    EXECUTE format('DROP TRIGGER IF EXISTS %I ON %I', table_name || '_set_updated_at_kst', table_name);
+    EXECUTE format(
+      'CREATE TRIGGER %I BEFORE UPDATE ON %I FOR EACH ROW EXECUTE FUNCTION set_updated_at_kst()',
+      table_name || '_set_updated_at_kst',
+      table_name
+    );
+  END LOOP;
+END;
+$$;
 
 -- ===========================================================================
 -- Double-booking guard
@@ -1020,8 +1054,7 @@ ALTER TABLE "reservation"
 --    Naming: is_active → use_yn, is_featured → featured_yn, is_pinned → pinned_yn.
 -- 3. created_by / updated_by: nullable BIGINT soft reference to user.id (no physical FK).
 --    User deletion must not cascade-null audit columns; values are read-only history.
--- 4. updated_at has no DB-level trigger; maintained by Prisma @updatedAt.
---    Raw INSERTs outside Prisma must supply updated_at explicitly.
+-- 4. created_at / updated_at are maintained by DB defaults and triggers in Asia/Seoul local time.
 -- 5. reservation uses a polymorphic pattern (kind + target_id).
 --    Only room_id and user_id carry physical FK constraints.
 -- 6. main_image_id / image_ids are soft references (no FK) — referential

@@ -9,10 +9,10 @@ const publicService = {
     const [banners, featuredPrograms, featuredAccommodations, latestNotices, featuredFacilities] =
       await Promise.all([
         db.query("banner", "listBanners", { activeYn: "Y", limitOffset: "LIMIT 10" }),
-        db.query("program", "listPrograms", { activeYn: "Y", featuredYn: "Y", q: null, limitOffset: "LIMIT 10" }),
+        db.query("program", "listPrograms", { activeYn: "Y", mainOpenYn: "Y", q: null, limitOffset: "LIMIT 10" }),
         db.query("accommodation", "listAccommodations", { activeYn: "Y", featuredYn: "Y", q: null, limitOffset: "LIMIT 10" }),
         db.query("notice", "listLatestNotices"),
-        db.query("facility", "listFacilities", { activeYn: "Y", featuredYn: "Y", kind: null, q: null, limitOffset: "LIMIT 10" }),
+        db.query("facility", "listFacilities", { activeYn: "Y", mainOpenYn: "Y", kind: null, q: null, limitOffset: "LIMIT 10" }),
       ]);
 
     const bannerRows = banners as any[];
@@ -45,7 +45,7 @@ const publicService = {
 
   async listPrograms(q: types.ListQuery = {}) {
     const lo = utils.limitOffsetSQL(q);
-    const params = { activeYn: "Y", featuredYn: q.featuredYn ?? null, q: q.q ?? null };
+    const params = { activeYn: "Y", mainOpenYn: q.mainOpenYn ?? null, q: q.q ?? null };
     const [rows, countRow] = await Promise.all([
       db.query("program", "listPrograms", { ...params, limitOffset: lo }),
       q.all ? null : db.queryOne<{ total: string }>("program", "countPrograms", params),
@@ -189,7 +189,7 @@ const publicService = {
 
   async listFacilities(q: types.ListQuery = {}) {
     const lo = utils.limitOffsetSQL(q);
-    const params = { activeYn: "Y", featuredYn: q.featuredYn ?? null, kind: (q as any).kind ?? null, q: q.q ?? null };
+    const params = { activeYn: "Y", mainOpenYn: (q as any).mainOpenYn ?? null, kind: (q as any).kind ?? null, q: q.q ?? null };
     const [rows, countRow] = await Promise.all([
       db.query("facility", "listFacilities", { ...params, limitOffset: lo }),
       q.all ? null : db.queryOne<{ total: string }>("facility", "countFacilities", params),

@@ -9,7 +9,6 @@ type MenuRow = {
   menuName: string;
   path?: string;
   icon?: string;
-  roles: string[];
   target: string;
   activeYn: string;
   sortOrder: number;
@@ -57,7 +56,7 @@ const menuService = {
   /**
    * 사용자 권한 기반 메뉴 트리 조회
    * - userId 제공 시: user_permission → permission_menu 조인으로 접근 가능한 메뉴 반환
-   * - userId 미제공 (게스트): roles = [] 인 디폴트 공개 메뉴만 반환
+   * - userId 미제공 (게스트): groupCode='WEB_PUBLIC' 등으로 공개 메뉴 반환
    * - groupCode: 특정 그룹만 필터 (없으면 전체)
    */
   async getMenusByUser(userId?: string, groupCode?: string): Promise<MenuNode[]> {
@@ -99,7 +98,6 @@ const menuService = {
     menuName: string;
     path?: string;
     icon?: string;
-    roles?: string[];
     target?: "_self" | "_blank";
     activeYn?: "Y" | "N";
     sortOrder?: number;
@@ -111,7 +109,6 @@ const menuService = {
       menuName: body.menuName,
       path: body.path ?? null,
       icon: body.icon ?? null,
-      roles: utils.pgTextArr(body.roles ?? []),
       target: body.target ?? "_self",
       activeYn: body.activeYn ?? "Y",
       sortOrder: body.sortOrder ?? 0,
@@ -124,7 +121,6 @@ const menuService = {
     menuName?: string;
     path?: string;
     icon?: string;
-    roles?: string[];
     target?: "_self" | "_blank";
     activeYn?: "Y" | "N";
     sortOrder?: number;
@@ -134,7 +130,6 @@ const menuService = {
       menuName: body.menuName ?? null,
       path: body.path ?? null,
       icon: body.icon ?? null,
-      roles: body.roles != null ? utils.pgTextArr(body.roles) : null,
       target: body.target ?? null,
       activeYn: body.activeYn ?? null,
       sortOrder: body.sortOrder ?? null,

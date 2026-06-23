@@ -56,6 +56,7 @@ export const S_ListQuery = {
     all: { type: "boolean", default: false, description: "전체 조회 여부 (true 시 페이징 없이 전체 반환)" },
     useYn: { type: "string", enum: ["Y", "N"], description: "활성 여부" },
     featuredYn: { type: "string", enum: ["Y", "N"], description: "추천 여부" },
+    mainOpenYn: { type: "string", enum: ["Y", "N"], description: "메인 노출 여부" },
   },
 } as const;
 
@@ -103,21 +104,34 @@ export const S_AuthTokenResponse = {
   $id: "AuthTokenResponse",
   type: "object",
   properties: {
-    accessToken: { type: "string" },
-    refreshToken: { type: "string" },
     user: { $ref: "UserInfo#" },
+    tokens: {
+      type: "object",
+      properties: {
+        accessToken: { type: "string" },
+        refreshToken: { type: "string" },
+      },
+      required: ["accessToken", "refreshToken"],
+    },
   },
-  required: ["accessToken", "refreshToken", "user"],
+  required: ["user", "tokens"],
 } as const;
 
 export const S_RefreshTokenResponse = {
   $id: "RefreshTokenResponse",
   type: "object",
   properties: {
-    accessToken: { type: "string" },
-    refreshToken: { type: "string" },
+    user: { $ref: "UserInfo#" },
+    tokens: {
+      type: "object",
+      properties: {
+        accessToken: { type: "string" },
+        refreshToken: { type: "string" },
+      },
+      required: ["accessToken", "refreshToken"],
+    },
   },
-  required: ["accessToken", "refreshToken"],
+  required: ["user", "tokens"],
 } as const;
 
 // ─── Response: Program ────────────────────────────────────────────────────────
@@ -139,12 +153,12 @@ export const S_Program = {
     preparationNotes: { type: "string" },
     mainImage: { $ref: "ImageRef#" },
     images: { type: "array", items: { $ref: "ImageRef#" } },
-    featuredYn: { type: "string", enum: ["Y", "N"] },
+    mainOpenYn: { type: "string", enum: ["Y", "N"] },
     activeYn: { type: "string", enum: ["Y", "N"] },
     sortOrder: { type: "integer" },
     ...timestampProps,
   },
-  required: ["id", "name", "description", "pricePerPerson", "availableDays", "images", "featuredYn", "activeYn"],
+  required: ["id", "name", "description", "pricePerPerson", "availableDays", "images", "mainOpenYn", "activeYn"],
 } as const;
 
 export const S_ProgramSession = {
@@ -377,12 +391,12 @@ export const S_Facility = {
     location: { $ref: "GeoPoint#" },
     mainImage: { $ref: "ImageRef#" },
     images: { type: "array", items: { $ref: "ImageRef#" } },
-    featuredYn: { type: "string", enum: ["Y", "N"] },
+    mainOpenYn: { type: "string", enum: ["Y", "N"] },
     activeYn: { type: "string", enum: ["Y", "N"] },
     sortOrder: { type: "integer" },
     ...timestampProps,
   },
-  required: ["id", "kind", "name", "images", "featuredYn", "activeYn"],
+  required: ["id", "kind", "name", "images", "mainOpenYn", "activeYn"],
 } as const;
 
 export const S_PagedFacilities = {
@@ -532,7 +546,7 @@ export const S_CreateProgramBody = {
     preparationNotes: { type: "string" },
     mainImageId: { type: "string" },
     imageIds: { type: "array", items: { type: "string" } },
-    featuredYn: { type: "string", enum: ["Y", "N"] },
+    mainOpenYn: { type: "string", enum: ["Y", "N"] },
     activeYn: { type: "string", enum: ["Y", "N"] },
     sortOrder: { type: "integer" },
   },
@@ -554,7 +568,7 @@ export const S_UpdateProgramBody = {
     preparationNotes: { type: "string" },
     mainImageId: { type: "string" },
     imageIds: { type: "array", items: { type: "string" } },
-    featuredYn: { type: "string", enum: ["Y", "N"] },
+    mainOpenYn: { type: "string", enum: ["Y", "N"] },
     activeYn: { type: "string", enum: ["Y", "N"] },
     sortOrder: { type: "integer" },
   },
@@ -767,7 +781,7 @@ export const S_CreateFacilityBody = {
     location: { $ref: "GeoPoint#" },
     mainImageId: { type: "string" },
     imageIds: { type: "array", items: { type: "string" } },
-    featuredYn: { type: "string", enum: ["Y", "N"] },
+    mainOpenYn: { type: "string", enum: ["Y", "N"] },
     activeYn: { type: "string", enum: ["Y", "N"] },
     sortOrder: { type: "integer" },
   },
@@ -785,7 +799,7 @@ export const S_UpdateFacilityBody = {
     location: { $ref: "GeoPoint#" },
     mainImageId: { type: "string" },
     imageIds: { type: "array", items: { type: "string" } },
-    featuredYn: { type: "string", enum: ["Y", "N"] },
+    mainOpenYn: { type: "string", enum: ["Y", "N"] },
     activeYn: { type: "string", enum: ["Y", "N"] },
     sortOrder: { type: "integer" },
   },

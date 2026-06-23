@@ -41,16 +41,17 @@
 
   <insert id="assignDefaultPermissions">
     INSERT INTO user_permission (user_id, permission_id)
-    SELECT ${userId}, permission_id
-    FROM user_type_permission
-    WHERE user_type = #{userType}
+    SELECT ${userId}, p.id
+    FROM permission p
+    WHERE p.use_yn = 'Y'
+      AND p.code = #{userType}
     ON CONFLICT (user_id, permission_id) DO NOTHING
   </insert>
 
   <insert id="createRefreshToken">
-    INSERT INTO refresh_token (user_id, token, user_agent, expires_at)
-    VALUES (${userId}, #{token}, #{userAgent}, #{expiresAt}::timestamptz)
-    RETURNING id::text AS id, user_id::text AS "userId", token,
+    INSERT INTO refresh_token (user_id, token_hash, user_agent, expires_at)
+    VALUES (${userId}, #{tokenHash}, #{userAgent}, #{expiresAt}::timestamptz)
+    RETURNING id::text AS id, user_id::text AS "userId",
               expires_at AS "expiresAt", created_at AS "createdAt"
   </insert>
 
@@ -58,26 +59,25 @@
     SELECT
       id::text AS id,
       user_id::text AS "userId",
-      token,
       expires_at AS "expiresAt",
       revoked_at AS "revokedAt"
     FROM refresh_token
-    WHERE token = #{token}
+    WHERE token_hash = #{tokenHash}
     LIMIT 1
   </select>
 
   <update id="revokeRefreshToken">
     UPDATE refresh_token
-    SET revoked_at = CURRENT_TIMESTAMP
-    WHERE token = #{token}
+    SET revoked_at = current_kst_timestamp()
+    WHERE token_hash = #{tokenHash}
     AND (revoked_at IS NULL)
   </update>
 
   <update id="revokeUserRefreshToken">
     UPDATE refresh_token
-    SET revoked_at = CURRENT_TIMESTAMP
+    SET revoked_at = current_kst_timestamp()
     WHERE user_id = ${userId}
-    AND token = #{token}
+    AND token_hash = #{tokenHash}
     AND revoked_at IS NULL
   </update>
 

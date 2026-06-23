@@ -320,6 +320,16 @@ const registerAdminRoutes = async (app: FastifyInstance) => {
     },
   }, adminController.listFacilities);
 
+  app.get<{ Params: { id: string } }>("/admin/facilities/:id", {
+    schema: {
+      tags: ["Admin / Facilities"],
+      summary: "시설 상세",
+      params: { $ref: "IdParam#" },
+      ...SEC,
+      response: { 200: { $ref: "Facility#" }, ...ERR },
+    },
+  }, adminController.getFacility);
+
   app.post<{ Body: types.CreateFacilityInput }>("/admin/facilities", {
     schema: {
       tags: ["Admin / Facilities"],

@@ -17,7 +17,7 @@ export async function Header() {
           </Link>
 
           {/* 네비게이션 + 메가 드롭다운 */}
-          <div className="group relative hidden items-center gap-6 md:flex">
+          <div className="group relative hidden items-center gap-12 md:flex">
             {navItems.map((item) =>
               item.path ? (
                 <Link
@@ -59,10 +59,10 @@ function MegaPanel({ items }: { items: Menu[] }) {
   if (!withChildren.length) return null;
 
   return (
-    <div className="absolute left-1/2 top-full hidden -translate-x-1/2 group-hover:flex">
+    <div className="absolute left-0 top-full hidden w-full group-hover:flex">
       {/* 빈 공간 브릿지 — hover 끊김 방지 */}
       <div className="absolute -top-2 left-0 h-2 w-full" />
-      <div className="flex gap-8 rounded-xl border bg-white px-8 py-5 shadow-lg">
+      <div className="flex w-full justify-between rounded-xl border bg-white px-0 py-5 shadow-lg">
         {withChildren.map((item) => (
           <div key={item.id} className="min-w-24">
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-green-800">

@@ -17,7 +17,6 @@ export interface Menu extends Timestamps, Sortable {
   menuName: string;
   path?: string;
   icon?: string;
-  roles: string[];
   target: "_self" | "_blank";
   activeYn: YN;
   children?: Menu[];
@@ -40,7 +39,6 @@ export interface CreateMenuInput {
   menuName: string;
   path?: string;
   icon?: string;
-  roles?: string[];
   target?: "_self" | "_blank";
   activeYn?: YN;
   sortOrder?: number;

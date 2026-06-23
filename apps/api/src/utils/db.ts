@@ -4,8 +4,11 @@ import { join } from "path";
 import { readdirSync } from "fs";
 import type { FastifyBaseLogger } from "fastify";
 
+export const DB_TIMEZONE = process.env.DB_TIMEZONE ?? "Asia/Seoul";
+
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  options: `-c timezone=${DB_TIMEZONE}`,
 });
 
 let mappersLoaded = false;

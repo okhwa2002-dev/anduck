@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="program">
@@ -14,7 +14,7 @@
     preparation_notes AS "preparationNotes",
     main_image_id::text AS "mainImageId",
     image_ids::text[] AS "imageIds",
-    featured_yn AS "featuredYn",
+    main_open_yn AS "mainOpenYn",
     active_yn AS "activeYn",
     sort_order AS "sortOrder",
     created_at AS "createdAt",
@@ -35,7 +35,7 @@
     SELECT COUNT(*) AS total FROM program
     <where>
       <if test="activeYn != null">active_yn = #{activeYn}</if>
-      <if test="featuredYn != null">AND featured_yn = #{featuredYn}</if>
+      <if test="mainOpenYn != null">AND main_open_yn = #{mainOpenYn}</if>
       <if test="q != null">AND name ILIKE '%' || #{q} || '%'</if>
     </where>
   </select>
@@ -45,7 +45,7 @@
     FROM program
     <where>
       <if test="activeYn != null">active_yn = #{activeYn}</if>
-      <if test="featuredYn != null">AND featured_yn = #{featuredYn}</if>
+      <if test="mainOpenYn != null">AND main_open_yn = #{mainOpenYn}</if>
       <if test="q != null">AND name ILIKE '%' || #{q} || '%'</if>
     </where>
     ORDER BY sort_order ASC, created_at DESC
@@ -64,13 +64,13 @@
       name, summary, description,
       duration_minutes, price_per_person, min_participants, max_participants,
       available_days, operating_hours, preparation_notes,
-      main_image_id, image_ids, featured_yn, active_yn, sort_order,
+      main_image_id, image_ids, main_open_yn, active_yn, sort_order,
       created_by, updated_by
     ) VALUES (
       #{name}, #{summary}, #{description},
       #{durationMinutes}, #{pricePerPerson}, #{minParticipants}, #{maxParticipants},
       ${availableDays}, #{operatingHours}, #{preparationNotes},
-      ${mainImageId}, ${imageIds}, #{featuredYn}, #{activeYn}, #{sortOrder},
+      ${mainImageId}, ${imageIds}, #{mainOpenYn}, #{activeYn}, #{sortOrder},
       ${createdBy}, ${createdBy}
     )
     RETURNING <include refid="cols"/>
@@ -91,11 +91,10 @@
       <if test="preparationNotes != null">preparation_notes = #{preparationNotes},</if>
       <if test="mainImageId != null">main_image_id = ${mainImageId},</if>
       <if test="imageIds != null">image_ids = ${imageIds},</if>
-      <if test="featuredYn != null">featured_yn = #{featuredYn},</if>
+      <if test="mainOpenYn != null">main_open_yn = #{mainOpenYn},</if>
       <if test="activeYn != null">active_yn = #{activeYn},</if>
       <if test="sortOrder != null">sort_order = #{sortOrder},</if>
       <if test="updatedBy != null">updated_by = ${updatedBy},</if>
-      updated_at = CURRENT_TIMESTAMP
     </set>
     WHERE id = ${id}
     RETURNING <include refid="cols"/>
@@ -140,7 +139,6 @@
       <if test="startTime != null">start_time = #{startTime},</if>
       <if test="capacity != null">capacity = #{capacity},</if>
       <if test="activeYn != null">active_yn = #{activeYn},</if>
-      updated_at = CURRENT_TIMESTAMP
     </set>
     WHERE id = ${id}
     RETURNING <include refid="sessionCols"/>

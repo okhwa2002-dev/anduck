@@ -109,6 +109,11 @@ const adminController = {
     return adminService.removeAdminGalleryItem(req.params.id);
   },
 
+  async getFacility(req: Req<{ Params: { id: string } }>) {
+    const facility = await adminService.getAdminFacility(req.params.id);
+    return facility ?? notFound("시설을 찾을 수 없습니다");
+  },
+
   async listFacilities(req: Req<{ Querystring: types.ListQuery }>) {
     return adminService.listAdminFacilities(req.query);
   },

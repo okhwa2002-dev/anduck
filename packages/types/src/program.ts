@@ -14,7 +14,7 @@ export interface Program extends Timestamps, Sortable {
   preparationNotes?: string;
   mainImage?: ImageRef;
   images: ImageRef[];
-  featuredYn: YN;
+  mainOpenYn: YN;
   activeYn: YN;
   sessions?: ProgramSession[];
 }
@@ -42,7 +42,7 @@ export interface CreateProgramInput {
   preparationNotes?: string;
   mainImageId?: string;
   imageIds?: string[];
-  featuredYn?: YN;
+  mainOpenYn?: YN;
   activeYn?: YN;
   sortOrder?: number;
 }

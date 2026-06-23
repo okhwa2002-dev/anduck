@@ -7,6 +7,8 @@ services:
       POSTGRES_USER: anduck
       POSTGRES_PASSWORD: anduck
       POSTGRES_DB: anduck
+      TZ: Asia/Seoul
+      PGTZ: Asia/Seoul
     ports:
       - "5436:5432"
     volumes:

@@ -195,9 +195,16 @@ const adminService = {
   },
 
   // ─── Facilities ───────────────────────────────────────────────────────────
+  async getAdminFacility(id: string) {
+    const row = await db.queryOne("facility", "getFacilityById", { id: utils.pgId(id), activeYn: null });
+    if (!row) return null;
+    const imgs = await imagesService.getImages(mappers.imageIdsFrom([row as any]));
+    return mappers.mapFacility(row as any, imgs);
+  },
+
   async listAdminFacilities(q: types.ListQuery) {
     const lo = utils.limitOffsetSQL(q);
-    const params = { activeYn: q.useYn ?? null, featuredYn: null, kind: (q as any).kind ?? null, q: q.q ?? null };
+    const params = { activeYn: q.useYn ?? null, mainOpenYn: null, kind: (q as any).kind ?? null, q: q.q ?? null };
     const [rows, countRow] = await Promise.all([
       db.query("facility", "listFacilities", { ...params, limitOffset: lo }),
       q.all ? null : db.queryOne<{ total: string }>("facility", "countFacilities", params),
@@ -218,7 +225,7 @@ const adminService = {
       longitude: body.location?.longitude ?? null,
       mainImageId: utils.pgId(body.mainImageId),
       imageIds: utils.pgBigintArr(body.imageIds),
-      featuredYn: body.featuredYn ?? "N",
+      mainOpenYn: body.mainOpenYn ?? "N",
       activeYn: body.activeYn ?? "Y",
       sortOrder: body.sortOrder ?? 0,
       createdBy: utils.pgId(userId),
@@ -240,7 +247,7 @@ const adminService = {
       longitude: body.location?.longitude ?? null,
       mainImageId: body.mainImageId !== undefined ? utils.pgId(body.mainImageId) : null,
       imageIds: body.imageIds != null ? utils.pgBigintArr(body.imageIds) : null,
-      featuredYn: body.featuredYn ?? null,
+      mainOpenYn: body.mainOpenYn ?? null,
       activeYn: body.activeYn ?? null,
       sortOrder: body.sortOrder ?? null,
     });

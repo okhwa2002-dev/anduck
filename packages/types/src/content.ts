@@ -32,7 +32,7 @@ export interface Facility extends Timestamps, Sortable {
   location?: GeoPoint;
   mainImage?: ImageRef;
   images: ImageRef[];
-  featuredYn: YN;
+  mainOpenYn: YN;
   activeYn: YN;
 }
 
@@ -94,7 +94,7 @@ export interface CreateFacilityInput {
   location?: GeoPoint;
   mainImageId?: string;
   imageIds?: string[];
-  featuredYn?: YN;
+  mainOpenYn?: YN;
   activeYn?: YN;
   sortOrder?: number;
 }

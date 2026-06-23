@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import { createHash } from "crypto";
 import * as db from "../utils/db";
 import * as utils from "../utils";
 
@@ -51,6 +52,10 @@ function mapUser(r: UserRow) {
   };
 }
 
+function hashToken(token: string): string {
+  return createHash("sha256").update(token).digest("hex");
+}
+
 const authService = {
   async validateCredentials(loginId: string, password: string) {
     const user = await db.queryOne<UserWithHash>("auth", "getUserByLoginId", { loginId });
@@ -86,18 +91,21 @@ const authService = {
     const expiresAt = new Date(Date.now() + parseDuration(process.env.JWT_REFRESH_EXPIRES_IN ?? "7d")).toISOString();
     await db.execute("auth", "createRefreshToken", {
       userId: utils.pgId(userId),
-      token,
+      tokenHash: hashToken(token),
       userAgent: userAgent ?? null,
       expiresAt,
     });
   },
 
   async getRefreshToken(token: string): Promise<RefreshTokenRow | null> {
-    return db.queryOne<RefreshTokenRow>("auth", "getRefreshToken", { token });
+    return db.queryOne<RefreshTokenRow>("auth", "getRefreshToken", { tokenHash: hashToken(token) });
   },
 
   async revokeToken(userId: string, token: string) {
-    await db.execute("auth", "revokeUserRefreshToken", { userId: utils.pgId(userId), token });
+    await db.execute("auth", "revokeUserRefreshToken", {
+      userId: utils.pgId(userId),
+      tokenHash: hashToken(token),
+    });
   },
 };
 
