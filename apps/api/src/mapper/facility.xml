@@ -18,9 +18,9 @@
   <select id="countFacilities">
     SELECT COUNT(*) AS total FROM facility
     <where>
-      <if test="activeYn != null">active_yn = #{activeYn}</if>
-      <if test="mainOpenYn != null">AND main_open_yn = #{mainOpenYn}</if>
-      <if test="kind != null">AND kind = #{kind}</if>
+      <if test="activeYns != null">active_yn = ANY(${activeYns})</if>
+      <if test="mainOpenYns != null">AND main_open_yn = ANY(${mainOpenYns})</if>
+      <if test="kinds != null">AND kind::text = ANY(${kinds})</if>
       <if test="q != null">AND name ILIKE '%' || #{q} || '%'</if>
     </where>
   </select>
@@ -29,9 +29,9 @@
     SELECT <include refid="cols"/>
     FROM facility
     <where>
-      <if test="activeYn != null">active_yn = #{activeYn}</if>
-      <if test="mainOpenYn != null">AND main_open_yn = #{mainOpenYn}</if>
-      <if test="kind != null">AND kind = #{kind}</if>
+      <if test="activeYns != null">active_yn = ANY(${activeYns})</if>
+      <if test="mainOpenYns != null">AND main_open_yn = ANY(${mainOpenYns})</if>
+      <if test="kinds != null">AND kind::text = ANY(${kinds})</if>
       <if test="q != null">AND name ILIKE '%' || #{q} || '%'</if>
     </where>
     ORDER BY sort_order ASC, created_at DESC

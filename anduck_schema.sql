@@ -110,6 +110,7 @@ CREATE TABLE "image" (
   "filename"     TEXT,
   "content_type" TEXT,
   "size"         INTEGER,
+  "source_type"  VARCHAR(50),
   "created_at"   TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "created_by"   BIGINT,
   "updated_at"   TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
@@ -123,6 +124,7 @@ COMMENT ON COLUMN "image"."alt"          IS '대체 텍스트 (접근성·SEO)';
 COMMENT ON COLUMN "image"."filename"     IS '원본 파일명';
 COMMENT ON COLUMN "image"."content_type" IS 'MIME 타입 (예: image/jpeg)';
 COMMENT ON COLUMN "image"."size"         IS '파일 크기 (bytes)';
+COMMENT ON COLUMN "image"."source_type"  IS '업로드 출처 메뉴 (facility·program·accommodation·room·banner·gallery·village)';
 COMMENT ON COLUMN "image"."created_at"   IS '생성일시';
 COMMENT ON COLUMN "image"."created_by"   IS '생성자 ID (user.id 소프트 참조)';
 COMMENT ON COLUMN "image"."updated_at"   IS '수정일시';

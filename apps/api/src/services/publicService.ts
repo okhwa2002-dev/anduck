@@ -12,7 +12,7 @@ const publicService = {
         db.query("program", "listPrograms", { activeYn: "Y", mainOpenYn: "Y", q: null, limitOffset: "LIMIT 10" }),
         db.query("accommodation", "listAccommodations", { activeYn: "Y", featuredYn: "Y", q: null, limitOffset: "LIMIT 10" }),
         db.query("notice", "listLatestNotices"),
-        db.query("facility", "listFacilities", { activeYn: "Y", mainOpenYn: "Y", kind: null, q: null, limitOffset: "LIMIT 10" }),
+        db.query("facility", "listFacilities", { activeYns: utils.pgTextArr(["Y"]), mainOpenYns: utils.pgTextArr(["Y"]), kinds: null, q: null, limitOffset: "LIMIT 10" }),
       ]);
 
     const bannerRows = banners as any[];
@@ -189,7 +189,13 @@ const publicService = {
 
   async listFacilities(q: types.ListQuery = {}) {
     const lo = utils.limitOffsetSQL(q);
-    const params = { activeYn: "Y", mainOpenYn: (q as any).mainOpenYn ?? null, kind: (q as any).kind ?? null, q: q.q ?? null };
+    const kindVals = utils.filterVals(q.filters, "kind");
+    const params = {
+      activeYns: utils.pgTextArr(["Y"]),
+      mainOpenYns: null,
+      kinds: kindVals ? utils.pgTextArr(kindVals) : null,
+      q: q.q ?? null,
+    };
     const [rows, countRow] = await Promise.all([
       db.query("facility", "listFacilities", { ...params, limitOffset: lo }),
       q.all ? null : db.queryOne<{ total: string }>("facility", "countFacilities", params),

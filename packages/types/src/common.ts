@@ -1,5 +1,13 @@
 ﻿export type YN = "Y" | "N";
 
+export type FilterOp = "eq" | "neq" | "like" | "in";
+
+export interface FilterCondition {
+  field: string;
+  op?: FilterOp;
+  value: string | string[];
+}
+
 export interface Timestamps {
   createdAt: string;
   createdBy?: string;
@@ -31,6 +39,8 @@ export interface ListQuery extends PaginationQuery {
   useYn?: YN;
   featuredYn?: YN;
   mainOpenYn?: YN;
+  /** JSON-encoded FilterCondition[] — 여러 검색 조건을 표현하는 멀티 필터 */
+  filters?: FilterCondition[] | string;
 }
 
 export interface ImageRef {

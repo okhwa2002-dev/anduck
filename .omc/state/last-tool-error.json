@@ -1,7 +1,0 @@
-{
-  "tool_name": "Read",
-  "tool_input_preview": "{\"file_path\":\"d:\\\\workspace\\\\ok2020\\\\anduck\\\\apps\\\\web\\\\src\\\\app\\\\(public)\\\\page.tsx\"}",
-  "error": "File does not exist. Note: your current working directory is D:\\workspace\\ok2020\\anduck.",
-  "timestamp": "2026-06-18T07:37:08.693Z",
-  "retry_count": 1
-}

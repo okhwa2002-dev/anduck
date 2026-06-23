@@ -5,6 +5,8 @@
 - [database.md](../../.claude/roles/database.md) — XML 매퍼, pg 타입 변환, 스키마 컨벤션, 헬퍼
 - [auth.md](../../.claude/roles/auth.md) — JWT, authenticate / optionalAuthenticate 패턴
 - [types.md](../../.claude/roles/types.md) — @anduck/types 구조, 빌드 순서, 필드명 규칙
+- [filter-system.md](../../.claude/roles/filter-system.md) — 멀티 필터 구조, FilterCondition, SQL 변환 패턴
+- [file-upload.md](../../.claude/roles/file-upload.md) — 파일 업로드 엔드포인트, 저장 방식, 엔티티 연결 패턴
 
 ---
 

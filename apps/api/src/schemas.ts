@@ -57,6 +57,10 @@ export const S_ListQuery = {
     useYn: { type: "string", enum: ["Y", "N"], description: "활성 여부" },
     featuredYn: { type: "string", enum: ["Y", "N"], description: "추천 여부" },
     mainOpenYn: { type: "string", enum: ["Y", "N"], description: "메인 노출 여부" },
+    filters: {
+      type: "string",
+      description: "JSON-encoded FilterCondition[] — 예: [{\"field\":\"kind\",\"value\":\"SPORTS\"},{\"field\":\"activeYn\",\"op\":\"eq\",\"value\":\"Y\"}]",
+    },
   },
 } as const;
 

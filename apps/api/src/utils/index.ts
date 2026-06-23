@@ -1,4 +1,4 @@
-import type { Paginated } from "@anduck/types";
+import type { FilterCondition, Paginated } from "@anduck/types";
 import { BadRequestError, NotFoundError } from "./errors";
 
 type PageQ = { page?: number; pageSize?: number; all?: boolean };
@@ -84,4 +84,34 @@ export function pgStr(val?: string | null): string {
 export function pgNum(val?: number | null): string {
   if (val == null) return "NULL";
   return String(val);
+}
+
+// ─── Filter helpers ───────────────────────────────────────────────────────────
+
+function parseFilters(raw: FilterCondition[] | string | undefined): FilterCondition[] {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw;
+  try { return JSON.parse(raw); } catch { return []; }
+}
+
+/** filters 배열에서 특정 field의 값을 추출. 없으면 null */
+export function filterVal(
+  filters: FilterCondition[] | string | undefined,
+  field: string,
+): string | null {
+  const list = parseFilters(filters);
+  const found = list.find((f) => f.field === field);
+  if (!found) return null;
+  return Array.isArray(found.value) ? found.value[0] ?? null : found.value;
+}
+
+/** filters 배열에서 특정 field의 값을 배열로 추출. 없으면 null */
+export function filterVals(
+  filters: FilterCondition[] | string | undefined,
+  field: string,
+): string[] | null {
+  const list = parseFilters(filters);
+  const found = list.find((f) => f.field === field);
+  if (!found) return null;
+  return Array.isArray(found.value) ? found.value : [found.value];
 }

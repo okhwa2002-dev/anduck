@@ -9,6 +9,8 @@ import type { CreateFacilityInput } from "@anduck/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ImageUploader, type UploadedImage } from "@/components/common/ImageUploader";
+import { useMenuCode } from "@/hooks/useMenuCode";
 
 interface Props {
   id?: string;
@@ -55,6 +57,7 @@ const EMPTY: FormState = {
 export function FacilityFormPage({ id }: Props) {
   const router = useRouter();
   const isEdit = !!id;
+  const menuCode = useMenuCode();
 
   const { data: facility, isLoading } = useSWR(
     id ? ["admin-facility", id] : null,
@@ -62,6 +65,8 @@ export function FacilityFormPage({ id }: Props) {
   );
 
   const [form, setForm] = useState<FormState>(EMPTY);
+  const [images, setImages] = useState<UploadedImage[]>([]);
+  const [mainImageId, setMainImageId] = useState<string | undefined>(undefined);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -81,6 +86,10 @@ export function FacilityFormPage({ id }: Props) {
       activeYn: facility.activeYn,
       sortOrder: String(facility.sortOrder ?? 0),
     });
+    setImages(
+      (facility.images ?? []).map((img) => ({ id: img.id, url: img.url, filename: img.alt ?? "" })),
+    );
+    setMainImageId(facility.mainImage?.id);
   }, [facility]);
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
@@ -111,6 +120,8 @@ export function FacilityFormPage({ id }: Props) {
                 longitude: parseFloat(form.longitude),
               }
             : undefined,
+        mainImageId: mainImageId,
+        imageIds: images.map((img) => img.id),
         mainOpenYn: form.mainOpenYn,
         activeYn: form.activeYn,
         sortOrder: parseInt(form.sortOrder, 10) || 0,
@@ -204,6 +215,18 @@ export function FacilityFormPage({ id }: Props) {
             onChange={(e) => set("description", e.target.value)}
             className="w-full resize-none rounded border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-300"
             required
+          />
+        </div>
+
+        {/* 이미지 */}
+        <div className="space-y-1.5">
+          <Label>이미지</Label>
+          <p className="text-xs text-gray-400">첫 번째 이미지가 대표 이미지로 설정됩니다. 썸네일 위에 마우스를 올리면 대표 변경·삭제가 가능합니다.</p>
+          <ImageUploader
+            value={images}
+            mainImageId={mainImageId}
+            onChange={(next, nextMain) => { setImages(next); setMainImageId(nextMain); }}
+            source={menuCode}
           />
         </div>
 

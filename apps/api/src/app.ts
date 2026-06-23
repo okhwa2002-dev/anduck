@@ -1,12 +1,17 @@
 import cors from "@fastify/cors";
 import jwt from "@fastify/jwt";
+import multipart from "@fastify/multipart";
 import rateLimit from "@fastify/rate-limit";
+import fastifyStatic from "@fastify/static";
 import swagger from "@fastify/swagger";
 import swaggerUi from "@fastify/swagger-ui";
 import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest } from "fastify";
+import path from "path";
 import { loadMappers, pool, setDbLogger } from "./utils/db";
 import { localISOString, LogRotator } from "./utils/logger";
+import { loadConfig } from "./utils/config";
 import registerAdminRoutes from "./routes/adminRoutes";
+import registerFilesRoutes from "./routes/filesRoutes";
 import { AppError } from "./utils/errors";
 import registerAuthRoutes from "./routes/authRoutes";
 import registerPublicRoutes from "./routes/publicRoutes";
@@ -23,6 +28,7 @@ declare module "@fastify/jwt" {
 }
 
 export async function createApp(): Promise<FastifyInstance> {
+  const config = loadConfig();
   loadMappers();
 
   const isTest = process.env.NODE_ENV === "test";
@@ -64,9 +70,17 @@ export async function createApp(): Promise<FastifyInstance> {
 
   await app.register(rateLimit, { global: false });
 
+  await app.register(multipart);
+
+  await app.register(fastifyStatic, {
+    root: path.resolve(config.uploadDir),
+    prefix: "/uploads/",
+  });
+
   await app.register(cors, {
     origin: (process.env.CORS_ORIGIN ?? "*").split(","),
     credentials: true,
+    exposedHeaders: ["Content-Disposition"],
   });
 
   await app.register(jwt, {
@@ -101,6 +115,7 @@ export async function createApp(): Promise<FastifyInstance> {
   await registerAuthRoutes(app);
   await registerPublicRoutes(app);
   await registerMenuRoutes(app);
+  await registerFilesRoutes(app);
   app.register(registerAdminRoutes);
 
   app.addHook("onClose", async () => {

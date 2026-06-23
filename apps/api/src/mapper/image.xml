@@ -4,9 +4,10 @@
 <mapper namespace="image">
 
   <sql id="cols">
-    id::text AS id, url, alt,
+    id::text AS id, url, alt, filename,
     content_type AS "mimeType",
     size,
+    source_type AS "sourceType",
     created_at AS "createdAt",
     created_by::text AS "createdBy"
   </sql>
@@ -18,8 +19,8 @@
   </select>
 
   <insert id="createImage">
-    INSERT INTO image (url, alt, content_type, size, created_by)
-    VALUES (#{url}, #{alt}, #{mimeType}, #{size}, ${createdBy})
+    INSERT INTO image (url, alt, filename, content_type, size, source_type, created_by)
+    VALUES (#{url}, #{alt}, #{filename}, #{mimeType}, #{size}, #{sourceType}, ${createdBy})
     RETURNING <include refid="cols"/>
   </insert>
 
