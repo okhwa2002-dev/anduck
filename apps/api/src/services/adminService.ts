@@ -283,7 +283,7 @@ const adminService = {
       kinds: toArr("kind"),
       q: q.q ?? null,
     };
-    const rows = (await db.query("facility", "listFacilities", { ...params, limitOffset: "" })) as any[];
+    const rows = (await db.query("facility", "listFacilities", { ...params, limitOffset: utils.limitOffsetSQL({ all: true }) })) as any[];
 
     const KIND_LABEL: Record<string, string> = { VILLAGE: "마을시설", NEARBY: "주변관광지" };
     const data = rows.map((r) => ({

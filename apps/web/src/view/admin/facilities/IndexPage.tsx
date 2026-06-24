@@ -6,6 +6,7 @@ import useSWR from "swr";
 import { type ColumnDef } from "@tanstack/react-table";
 import { ChevronDown, Download, Plus, Search, SlidersHorizontal } from "lucide-react";
 import { adminApi } from "@/api/admin";
+import { downloadExcel } from "@/lib/download";
 import { DataTable } from "@/components/common/DataTable";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -234,13 +235,7 @@ export function FacilitiesIndexPage() {
 
   async function handleDownload() {
     const { data, filename } = await adminApi.facilities.export({ q: q || undefined, filters: buildFilterConditions(filters) });
-    const blob = new Blob([data], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadExcel(data, filename);
   }
 
   return (

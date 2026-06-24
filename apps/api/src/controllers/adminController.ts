@@ -2,6 +2,7 @@ import type { FastifyRequest, FastifyReply } from "fastify";
 import type * as types from "@anduck/types";
 import adminService from "../services/adminService";
 import { notFound } from "../utils";
+import { sendExcelReply } from "../utils/excel";
 
 type Req<T extends Record<string, unknown> = Record<never, never>> = FastifyRequest<T>;
 
@@ -132,12 +133,7 @@ const adminController = {
 
   async exportFacilities(req: Req<{ Querystring: types.ListQuery }>, reply: FastifyReply) {
     const { buffer, title } = await adminService.exportAdminFacilities(req.query);
-    const ts = new Date().toISOString().replace(/\D/g, "").slice(0, 14);
-    const filename = encodeURIComponent(`${title.replace(/\s/g, "")}_${ts}.xlsx`);
-    reply
-      .header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-      .header("Content-Disposition", `attachment; filename*=UTF-8''${filename}`)
-      .send(buffer);
+    sendExcelReply(reply, buffer, title);
   },
 
   async listBanners(req: Req<{ Querystring: types.ListQuery }>) {

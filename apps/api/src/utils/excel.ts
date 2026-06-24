@@ -1,3 +1,4 @@
+import type { FastifyReply } from "fastify";
 import ExcelJS from "exceljs";
 
 export interface ExcelColumn {
@@ -19,6 +20,15 @@ const ALL_BORDERS: Partial<ExcelJS.Borders> = {
 
 function applyBorders(cell: ExcelJS.Cell) {
   cell.border = ALL_BORDERS;
+}
+
+export function sendExcelReply(reply: FastifyReply, buffer: Buffer, title: string) {
+  const ts = new Date().toISOString().replace(/\D/g, "").slice(0, 14);
+  const filename = encodeURIComponent(`${title.replace(/\s/g, "")}_${ts}.xlsx`);
+  reply
+    .header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    .header("Content-Disposition", `attachment; filename*=UTF-8''${filename}`)
+    .send(buffer);
 }
 
 export async function buildExcel(
