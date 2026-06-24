@@ -34,16 +34,47 @@ export function setDbLogger(logger: FastifyBaseLogger): void {
   _logger = logger.child({ component: "db" });
 }
 
+function writeSqlLog(label: string, sql: string): void {
+  const msg = `[SQL] ${label}\n${sql}`;
+  if (_logger) {
+    _logger.info(msg);
+  } else {
+    process.stdout.write(`\n${msg}\n`);
+  }
+}
+
+function sqlValue(value: unknown): string {
+  if (value === null || value === undefined) return "NULL";
+  if (typeof value === "number" || typeof value === "bigint") return String(value);
+  if (typeof value === "boolean") return value ? "TRUE" : "FALSE";
+  if (value instanceof Date) return `'${value.toISOString().replace(/'/g, "''")}'`;
+  if (Array.isArray(value)) return `ARRAY[${value.map(sqlValue).join(", ")}]`;
+
+  if (typeof value === "object") {
+    return `'${JSON.stringify(value).replace(/'/g, "''")}'`;
+  }
+
+  return `'${String(value).replace(/'/g, "''")}'`;
+}
+
+function applyNamedParams(sql: string, params?: MapperParams): string {
+  if (!params) return sql;
+  return sql.replace(/#\{(\w+)\}/g, (_, key: string) => sqlValue(params[key]));
+}
+
+function applyPositionalParams(sql: string, values?: unknown[]): string {
+  if (!values?.length) return sql;
+  return sql.replace(/\$(\d+)\b/g, (match, index: string) => {
+    const value = values[Number(index) - 1];
+    return value === undefined ? match : sqlValue(value);
+  });
+}
+
 export function buildSQL(namespace: string, id: string, params?: MapperParams): string {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const sql = mybatisMapper.getStatement(namespace, id, (params ?? {}) as any);
   if (DB_LOG) {
-    const msg = `[SQL] ${namespace}.${id}\n${sql}`;
-    if (_logger) {
-      _logger.info(msg);
-    } else {
-      process.stdout.write(`\n${msg}\n`);
-    }
+    writeSqlLog(namespace + "." + id, applyNamedParams(sql, params));
   }
   return sql;
 }
@@ -81,6 +112,9 @@ export async function rawQuery<T = Record<string, unknown>>(
   sql: string,
   values?: unknown[],
 ): Promise<T[]> {
+  if (DB_LOG) {
+    writeSqlLog("raw", applyPositionalParams(sql, values));
+  }
   const result = await pool.query(sql, values);
   return result.rows as T[];
 }
