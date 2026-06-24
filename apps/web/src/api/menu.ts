@@ -14,3 +14,14 @@ export async function getPublicMenus(groupCode = "WEB_PUBLIC"): Promise<Menu[]> 
     return [];
   }
 }
+
+export function findMenuByCode(menus: Menu[], menuCode: string): Menu | undefined {
+  for (const menu of menus) {
+    if (menu.menuCode === menuCode) return menu;
+
+    const child = findMenuByCode(menu.children ?? [], menuCode);
+    if (child) return child;
+  }
+
+  return undefined;
+}

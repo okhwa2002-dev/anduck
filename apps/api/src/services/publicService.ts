@@ -187,9 +187,9 @@ const publicService = {
     return mappers.mapGalleryItem(r, imgs.get(r.imageId));
   },
 
-  async listFacilities(q: types.ListQuery = {}) {
+  async listFacilities(q: types.ListQuery & { kind?: types.FacilityKind } = {}) {
     const lo = utils.limitOffsetSQL(q);
-    const kindVals = utils.filterVals(q.filters, "kind");
+    const kindVals = q.kind ? [q.kind] : utils.filterVals(q.filters, "kind");
     const params = {
       activeYns: utils.pgTextArr(["Y"]),
       mainOpenYns: null,
