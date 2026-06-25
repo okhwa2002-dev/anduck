@@ -78,6 +78,41 @@ export const S_ErrorResponse = {
   required: ["message"],
 } as const;
 
+export const S_Code = {
+  $id: "Code",
+  type: "object",
+  properties: {
+    id: { type: "string" },
+    groupId: { type: "string" },
+    code: { type: "string" },
+    name: { type: "string" },
+    description: { type: "string" },
+    extra: { type: "object", additionalProperties: true },
+    useYn: { type: "string", enum: ["Y", "N"] },
+    sortOrder: { type: "integer" },
+    createdAt: { type: "string", format: "date-time" },
+    updatedAt: { type: "string", format: "date-time" },
+  },
+  required: ["id", "groupId", "code", "name", "useYn", "sortOrder"],
+} as const;
+
+export const S_CodeGroup = {
+  $id: "CodeGroup",
+  type: "object",
+  properties: {
+    id: { type: "string" },
+    groupCode: { type: "string" },
+    groupName: { type: "string" },
+    description: { type: "string" },
+    useYn: { type: "string", enum: ["Y", "N"] },
+    sortOrder: { type: "integer" },
+    codes: { type: "array", items: { $ref: "Code#" } },
+    createdAt: { type: "string", format: "date-time" },
+    updatedAt: { type: "string", format: "date-time" },
+  },
+  required: ["id", "groupCode", "groupName", "useYn", "sortOrder"],
+} as const;
+
 // ─── Common timestamps ────────────────────────────────────────────────────────
 
 const timestampProps = {
@@ -946,6 +981,7 @@ export function registerSchemas(app: FastifyInstance): void {
   const schemas = [
     // shared
     S_ImageRef, S_Address, S_GeoPoint, S_IdParam, S_ListQuery, S_OkResponse, S_ErrorResponse,
+    S_Code, S_CodeGroup,
     // response entities
     S_UserInfo, S_AuthTokenResponse, S_RefreshTokenResponse,
     S_Program, S_ProgramSession, S_PagedPrograms,

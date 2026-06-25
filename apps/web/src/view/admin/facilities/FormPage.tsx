@@ -6,6 +6,7 @@ import useSWR from "swr";
 import { adminApi } from "@/api/admin";
 import { FacilityKind } from "@anduck/types";
 import type { CreateFacilityInput } from "@anduck/types";
+import { useCommonCode } from "@/hooks/useCommonCodes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,6 +20,16 @@ interface Props {
 const KIND_OPTIONS = [
   { value: FacilityKind.VILLAGE, label: "마을시설" },
   { value: FacilityKind.NEARBY, label: "주변관광지" },
+];
+
+const OPEN_YN_OPTIONS = [
+  { value: "N", label: "미노출" },
+  { value: "Y", label: "노출" },
+];
+
+const ACTIVE_YN_OPTIONS = [
+  { value: "Y", label: "활성" },
+  { value: "N", label: "비활성" },
 ];
 
 const SELECT_CLS =
@@ -58,6 +69,12 @@ export function FacilityFormPage({ id }: Props) {
   const router = useRouter();
   const isEdit = !!id;
   const menuCode = useMenuCode();
+  const facilityTypeCode = useCommonCode("FAC_TYPE_CD");
+  const openYnCode = useCommonCode("OPEN_YN");
+  const activeYnCode = useCommonCode("ACTIVE_YN");
+  const kindOptions = facilityTypeCode.options.length ? facilityTypeCode.options : KIND_OPTIONS;
+  const openYnOptions = openYnCode.options.length ? openYnCode.options : OPEN_YN_OPTIONS;
+  const activeYnOptions = activeYnCode.options.length ? activeYnCode.options : ACTIVE_YN_OPTIONS;
 
   const { data: facility, isLoading } = useSWR(
     id ? ["admin-facility", id] : null,
@@ -164,7 +181,7 @@ export function FacilityFormPage({ id }: Props) {
               className={SELECT_CLS}
               required
             >
-              {KIND_OPTIONS.map((o) => (
+              {kindOptions.map((o) => (
                 <option key={o.value} value={o.value}>
                   {o.label}
                 </option>
@@ -285,8 +302,11 @@ export function FacilityFormPage({ id }: Props) {
               onChange={(e) => set("mainOpenYn", e.target.value as "Y" | "N")}
               className={SELECT_CLS}
             >
-              <option value="N">미노출</option>
-              <option value="Y">노출</option>
+              {openYnOptions.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
             </select>
           </div>
           <div className="space-y-1.5">
@@ -297,8 +317,11 @@ export function FacilityFormPage({ id }: Props) {
               onChange={(e) => set("activeYn", e.target.value as "Y" | "N")}
               className={SELECT_CLS}
             >
-              <option value="Y">활성</option>
-              <option value="N">비활성</option>
+              {activeYnOptions.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
             </select>
           </div>
         </div>

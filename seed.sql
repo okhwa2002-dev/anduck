@@ -33,19 +33,24 @@ INSERT INTO "user" (login_id, email, password_hash, name, phone, user_type, upda
 -- 3. code_group / code
 -- =============================================================================
 INSERT INTO "code_group" (group_code, group_name, description, sort_order, updated_at) VALUES
-  ('AMENITY',       '편의시설',   '숙소 편의시설 코드',          1, CURRENT_TIMESTAMP),
-  ('AVAILABLE_DAY', '운영요일',   '체험 프로그램 운영 가능 요일', 2, CURRENT_TIMESTAMP),
-  ('PLATFORM',      '플랫폼',     '모바일 앱 플랫폼',            3, CURRENT_TIMESTAMP),
-  ('CANCEL_REASON', '취소사유',   '예약 취소 사유 코드',          4, CURRENT_TIMESTAMP);
+  ('AMENITY_CD',       '편의시설',   '숙소 편의시설 코드',          1, CURRENT_TIMESTAMP),
+  ('AVAIL_DAY_CD',     '운영요일',   '체험 프로그램 운영 가능 요일', 2, CURRENT_TIMESTAMP),
+  ('PLATFORM_CD',      '플랫폼',     '모바일 앱 플랫폼',            3, CURRENT_TIMESTAMP),
+  ('CANCEL_REASON_CD', '취소사유',   '예약 취소 사유 코드',          4, CURRENT_TIMESTAMP),
+  ('FAC_TYPE_CD',      '시설 구분',  '시설 업무 구분 코드',          5, CURRENT_TIMESTAMP),
+  ('RES_TYPE_CD',      '예약 구분',  '예약 업무 구분 코드',          6, CURRENT_TIMESTAMP),
+  ('RES_STATUS_CD',    '예약 상태',  '예약 처리 상태 코드',          7, CURRENT_TIMESTAMP),
+  ('OPEN_YN',          '노출 여부',  '노출 여부 코드',                8, CURRENT_TIMESTAMP),
+  ('ACTIVE_YN',        '활성 여부',  '활성 여부 코드',                9, CURRENT_TIMESTAMP);
 
 INSERT INTO "code" (group_id, code, name, sort_order, updated_at)
 SELECT g.id, c.code, c.name, c.sort_order, CURRENT_TIMESTAMP
 FROM "code_group" g,
   (VALUES
-    ('AMENITY', 'WIFI',     '무선인터넷', 1), ('AMENITY', 'PARKING',  '주차장',    2),
-    ('AMENITY', 'BBQ',      '바베큐',    3), ('AMENITY', 'KITCHEN',  '취사시설',  4),
-    ('AMENITY', 'TV',       'TV',       5), ('AMENITY', 'AC',       '에어컨',    6),
-    ('AMENITY', 'HEATING',  '난방',     7), ('AMENITY', 'BATHROOM', '개인욕실',  8)
+    ('AMENITY_CD', 'WIFI',     '무선인터넷', 1), ('AMENITY_CD', 'PARKING',  '주차장',    2),
+    ('AMENITY_CD', 'BBQ',      '바베큐',    3), ('AMENITY_CD', 'KITCHEN',  '취사시설',  4),
+    ('AMENITY_CD', 'TV',       'TV',       5), ('AMENITY_CD', 'AC',       '에어컨',    6),
+    ('AMENITY_CD', 'HEATING',  '난방',     7), ('AMENITY_CD', 'BATHROOM', '개인욕실',  8)
   ) AS c(group_code, code, name, sort_order)
 WHERE g.group_code = c.group_code;
 
@@ -53,10 +58,44 @@ INSERT INTO "code" (group_id, code, name, sort_order, updated_at)
 SELECT g.id, c.code, c.name, c.sort_order, CURRENT_TIMESTAMP
 FROM "code_group" g,
   (VALUES
-    ('AVAILABLE_DAY', 'MON', '월요일', 1), ('AVAILABLE_DAY', 'TUE', '화요일', 2),
-    ('AVAILABLE_DAY', 'WED', '수요일', 3), ('AVAILABLE_DAY', 'THU', '목요일', 4),
-    ('AVAILABLE_DAY', 'FRI', '금요일', 5), ('AVAILABLE_DAY', 'SAT', '토요일', 6),
-    ('AVAILABLE_DAY', 'SUN', '일요일', 7)
+    ('OPEN_YN',   'Y', '노출',   1),
+    ('OPEN_YN',   'N', '미노출', 2),
+    ('ACTIVE_YN', 'Y', '활성',   1),
+    ('ACTIVE_YN', 'N', '비활성', 2)
+  ) AS c(group_code, code, name, sort_order)
+WHERE g.group_code = c.group_code;
+
+INSERT INTO "code" (group_id, code, name, extra, sort_order, updated_at)
+SELECT g.id, c.code, c.name, c.extra::jsonb, c.sort_order, CURRENT_TIMESTAMP
+FROM "code_group" g,
+  (VALUES
+    ('FAC_TYPE_CD', 'VILLAGE',       '마을시설', NULL, 1),
+    ('FAC_TYPE_CD', 'NEARBY',        '주변관광지', NULL, 2),
+    ('RES_TYPE_CD', 'ACCOMMODATION', '숙박',     NULL, 1),
+    ('RES_TYPE_CD', 'PROGRAM',       '프로그램', NULL, 2)
+  ) AS c(group_code, code, name, extra, sort_order)
+WHERE g.group_code = c.group_code;
+
+INSERT INTO "code" (group_id, code, name, extra, sort_order, updated_at)
+SELECT g.id, c.code, c.name, c.extra::jsonb, c.sort_order, CURRENT_TIMESTAMP
+FROM "code_group" g,
+  (VALUES
+    ('RES_STATUS_CD', 'PENDING',   '대기',   '{"badgeClass":"bg-amber-100 text-amber-800 hover:bg-amber-100"}', 1),
+    ('RES_STATUS_CD', 'REVIEWING', '검토중', '{"badgeClass":"bg-blue-100 text-blue-800 hover:bg-blue-100"}',    2),
+    ('RES_STATUS_CD', 'CONFIRMED', '확정',   '{"badgeClass":"bg-green-100 text-green-800 hover:bg-green-100"}', 3),
+    ('RES_STATUS_CD', 'CANCELLED', '취소',   '{"badgeClass":"bg-gray-100 text-gray-500 hover:bg-gray-100"}',    4),
+    ('RES_STATUS_CD', 'COMPLETED', '완료',   '{"badgeClass":"bg-gray-100 text-gray-700 hover:bg-gray-100"}',    5)
+  ) AS c(group_code, code, name, extra, sort_order)
+WHERE g.group_code = c.group_code;
+
+INSERT INTO "code" (group_id, code, name, sort_order, updated_at)
+SELECT g.id, c.code, c.name, c.sort_order, CURRENT_TIMESTAMP
+FROM "code_group" g,
+  (VALUES
+    ('AVAIL_DAY_CD', 'MON', '월요일', 1), ('AVAIL_DAY_CD', 'TUE', '화요일', 2),
+    ('AVAIL_DAY_CD', 'WED', '수요일', 3), ('AVAIL_DAY_CD', 'THU', '목요일', 4),
+    ('AVAIL_DAY_CD', 'FRI', '금요일', 5), ('AVAIL_DAY_CD', 'SAT', '토요일', 6),
+    ('AVAIL_DAY_CD', 'SUN', '일요일', 7)
   ) AS c(group_code, code, name, sort_order)
 WHERE g.group_code = c.group_code;
 
@@ -64,7 +103,7 @@ INSERT INTO "code" (group_id, code, name, sort_order, updated_at)
 SELECT g.id, c.code, c.name, c.sort_order, CURRENT_TIMESTAMP
 FROM "code_group" g,
   (VALUES
-    ('PLATFORM', 'IOS', 'iOS', 1), ('PLATFORM', 'ANDROID', 'Android', 2)
+    ('PLATFORM_CD', 'IOS', 'iOS', 1), ('PLATFORM_CD', 'ANDROID', 'Android', 2)
   ) AS c(group_code, code, name, sort_order)
 WHERE g.group_code = c.group_code;
 
@@ -72,10 +111,10 @@ INSERT INTO "code" (group_id, code, name, sort_order, updated_at)
 SELECT g.id, c.code, c.name, c.sort_order, CURRENT_TIMESTAMP
 FROM "code_group" g,
   (VALUES
-    ('CANCEL_REASON', 'PERSONAL_SCHEDULE', '개인 일정 변경', 1),
-    ('CANCEL_REASON', 'WEATHER',           '기상 악화',     2),
-    ('CANCEL_REASON', 'HEALTH',            '건강 문제',     3),
-    ('CANCEL_REASON', 'OTHER',             '기타',         4)
+    ('CANCEL_REASON_CD', 'PERSONAL_SCHEDULE', '개인 일정 변경', 1),
+    ('CANCEL_REASON_CD', 'WEATHER',           '기상 악화',     2),
+    ('CANCEL_REASON_CD', 'HEALTH',            '건강 문제',     3),
+    ('CANCEL_REASON_CD', 'OTHER',             '기타',         4)
   ) AS c(group_code, code, name, sort_order)
 WHERE g.group_code = c.group_code;
 

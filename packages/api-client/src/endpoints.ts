@@ -5,6 +5,7 @@ import type {
   AvailabilityQuery,
   AvailabilityResult,
   Banner,
+  CodeGroup,
   CreateAccommodationInput,
   CreateBannerInput,
   CreateFacilityInput,
@@ -66,6 +67,19 @@ export function createEndpoints(http: AxiosInstance) {
         http
           .get<Menu[]>("/auth/menus", { params: { groupCode } })
           .then((r) => r.data),
+    },
+
+    codes: {
+      listGroups: (groupCodes?: string[] | string) =>
+        http
+          .get<CodeGroup[]>("/codes", {
+            params: {
+              groupCodes: Array.isArray(groupCodes) ? groupCodes.join(",") : groupCodes,
+            },
+          })
+          .then((r) => r.data),
+      getGroup: (groupCode: string) =>
+        http.get<CodeGroup>(`/codes/${groupCode}`).then((r) => r.data),
     },
 
     home: {
@@ -233,10 +247,10 @@ export function createEndpoints(http: AxiosInstance) {
       },
 
       reservations: {
-        list: (query?: ListQuery) =>
+        list: (query?: WithFilters<ListQuery>) =>
           http
             .get<Paginated<Reservation>>("/admin/reservations", {
-              params: query,
+              params: serializeFilters(query),
             })
             .then((r) => r.data),
         get: (id: string) =>

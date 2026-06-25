@@ -3,6 +3,7 @@
 import useSWR from "swr";
 import { StatCard } from "@/components/admin/StatCard";
 import { adminApi } from "@/api/admin";
+import { useCommonCode } from "@/hooks/useCommonCodes";
 import {
   Table,
   TableBody,
@@ -24,6 +25,8 @@ export function DashboardPage() {
   const { data, error, isLoading } = useSWR("admin-dashboard", () =>
     adminApi.dashboard.summary(),
   );
+  const statusCode = useCommonCode("RES_STATUS_CD");
+  const statusLabel = { ...STATUS_LABEL, ...statusCode.labelMap };
 
   if (isLoading) return <p className="text-sm text-gray-400">로딩 중...</p>;
   if (error || !data)
@@ -55,7 +58,7 @@ export function DashboardPage() {
                 <TableRow key={r.id}>
                   <TableCell>{r.applicant.name}</TableCell>
                   <TableCell>{r.applicant.phone}</TableCell>
-                  <TableCell>{STATUS_LABEL[r.status] ?? r.status}</TableCell>
+                  <TableCell>{statusLabel[r.status] ?? r.status}</TableCell>
                   <TableCell>
                     {new Date(r.createdAt).toLocaleDateString("ko-KR")}
                   </TableCell>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="code">
+
+  <select id="listCodes">
+    SELECT
+      cg.id::text        AS "groupId",
+      cg.group_code      AS "groupCode",
+      cg.group_name      AS "groupName",
+      cg.description     AS "groupDescription",
+      cg.use_yn          AS "groupUseYn",
+      cg.sort_order      AS "groupSortOrder",
+      cg.created_at      AS "groupCreatedAt",
+      cg.updated_at      AS "groupUpdatedAt",
+      c.id::text         AS id,
+      c.code,
+      c.name,
+      c.description,
+      c.extra,
+      c.use_yn           AS "useYn",
+      c.sort_order       AS "sortOrder",
+      c.created_at       AS "createdAt",
+      c.updated_at       AS "updatedAt"
+    FROM code_group cg
+    LEFT JOIN code c ON c.group_id = cg.id
+      <if test="useYn != null">
+        AND c.use_yn = #{useYn}
+      </if>
+    WHERE cg.use_yn = 'Y'
+      <if test="groupCodes != null">
+        AND cg.group_code = ANY(${groupCodes})
+      </if>
+    ORDER BY cg.sort_order, cg.group_code, c.sort_order, c.code
+  </select>
+
+  <select id="getCodeGroup">
+    SELECT
+      cg.id::text        AS "groupId",
+      cg.group_code      AS "groupCode",
+      cg.group_name      AS "groupName",
+      cg.description     AS "groupDescription",
+      cg.use_yn          AS "groupUseYn",
+      cg.sort_order      AS "groupSortOrder",
+      cg.created_at      AS "groupCreatedAt",
+      cg.updated_at      AS "groupUpdatedAt",
+      c.id::text         AS id,
+      c.code,
+      c.name,
+      c.description,
+      c.extra,
+      c.use_yn           AS "useYn",
+      c.sort_order       AS "sortOrder",
+      c.created_at       AS "createdAt",
+      c.updated_at       AS "updatedAt"
+    FROM code_group cg
+    LEFT JOIN code c ON c.group_id = cg.id
+      <if test="useYn != null">
+        AND c.use_yn = #{useYn}
+      </if>
+    WHERE cg.use_yn = 'Y'
+      AND cg.group_code = #{groupCode}
+    ORDER BY c.sort_order, c.code
+  </select>
+
+</mapper>

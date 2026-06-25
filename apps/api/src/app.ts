@@ -16,6 +16,7 @@ import { AppError } from "./utils/errors";
 import registerAuthRoutes from "./routes/authRoutes";
 import registerPublicRoutes from "./routes/publicRoutes";
 import registerMenuRoutes from "./routes/menuRoutes";
+import registerCodeRoutes from "./routes/codeRoutes";
 import { registerSchemas } from "./schemas.js";
 import { setSecurityHeaders } from "./utils/securityHeaders";
 import auditLogService from "./services/auditLogService";
@@ -145,6 +146,7 @@ export async function createApp(): Promise<FastifyInstance> {
 
   await registerAuthRoutes(app);
   await registerPublicRoutes(app);
+  await registerCodeRoutes(app);
   await registerMenuRoutes(app);
   await registerFilesRoutes(app);
   app.register(registerAdminRoutes);

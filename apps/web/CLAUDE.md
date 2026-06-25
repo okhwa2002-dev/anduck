@@ -9,6 +9,7 @@
 - [file-upload.md](../../.claude/roles/file-upload.md) — 파일 업로드 API, 저장 방식, image 테이블 연결
 - [image-upload.md](../../.claude/roles/image-upload.md) — 공통 이미지 업로드, 대표 이미지 지정/삭제 규칙
 - [filter-system.md](../../.claude/roles/filter-system.md) — 관리자 멀티 필터와 API query 규칙
+- [admin-list.md](../../.claude/roles/admin-list.md) — 관리자 목록 화면의 공통코드, 필터, 그리드, 목록 상태 규칙
 - [excel-export.md](../../.claude/roles/excel-export.md) — 엑셀 다운로드 구현 규칙
 
 ---

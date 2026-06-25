@@ -40,3 +40,8 @@ export interface CreateCodeInput {
 }
 
 export type UpdateCodeInput = Partial<Omit<CreateCodeInput, "groupId">>;
+
+export interface ListCodeGroupsQuery {
+  groupCodes?: string | string[];
+  useYn?: YN;
+}

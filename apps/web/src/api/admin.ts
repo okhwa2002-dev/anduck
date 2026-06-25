@@ -15,3 +15,4 @@ const http = createApiClient({
 const endpoints = createEndpoints(http);
 export const adminApi = endpoints.admin;
 export const menuApi = endpoints.menus;
+export const codeApi = endpoints.codes;

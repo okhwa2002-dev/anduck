@@ -80,7 +80,11 @@ const adminService = {
   // ─── Reservations ─────────────────────────────────────────────────────────
   async listAdminReservations(q: types.ListQuery) {
     const lo = utils.limitOffsetSQL(q);
-    const params = { status: utils.filterVal(q.filters, "status"), kind: utils.filterVal(q.filters, "kind"), q: q.q ?? null };
+    const toArr = (field: string) => {
+      const vals = utils.filterVals(q.filters, field);
+      return vals ? utils.pgTextArr(vals) : null;
+    };
+    const params = { statuses: toArr("status"), kinds: toArr("kind"), q: q.q ?? null };
     const [rows, countRow] = await Promise.all([
       db.query("reservation", "listReservations", { ...params, limitOffset: lo }),
       q.all ? null : db.queryOne<{ total: string }>("reservation", "countReservations", params),
