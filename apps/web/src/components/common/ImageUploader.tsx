@@ -62,39 +62,46 @@ export function ImageUploader({ value, mainImageId, onChange, source }: Props) {
               <div
                 key={img.id}
                 className={cn(
-                  "group relative overflow-hidden rounded-md border-2",
+                  "overflow-hidden rounded-md border-2 bg-white",
                   isMain ? "border-primary" : "border-gray-200",
                 )}
               >
-                <img
-                  src={img.url}
-                  alt={img.filename}
-                  className="aspect-square w-full object-cover"
-                />
-                {isMain && (
-                  <span className="absolute left-1 top-1 rounded bg-primary px-1 py-0.5 text-[10px] font-semibold text-white">
-                    대표
-                  </span>
-                )}
-                <div className="absolute inset-0 flex items-center justify-center gap-1.5 bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
-                  {!isMain && (
-                    <button
-                      type="button"
-                      onClick={() => setMain(img.id)}
-                      title="대표 이미지로 설정"
-                      className="rounded bg-white/90 p-1 hover:bg-white"
-                    >
-                      <Star className="size-3.5 text-yellow-500" />
-                    </button>
+                <div className="relative">
+                  <img
+                    src={img.url}
+                    alt={img.filename}
+                    className="aspect-square w-full object-cover"
+                  />
+                  {isMain && (
+                    <span className="absolute left-1 top-1 rounded bg-primary px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                      대표
+                    </span>
                   )}
                   <button
                     type="button"
                     onClick={() => remove(img.id)}
                     title="삭제"
-                    className="rounded bg-white/90 p-1 hover:bg-white"
+                    className="absolute right-1 top-1 rounded bg-white/90 p-1 hover:bg-white"
                   >
                     <X className="size-3.5 text-red-500" />
                   </button>
+                </div>
+                <div className="border-t bg-gray-50 p-2">
+                  {isMain ? (
+                    <div className="flex h-7 items-center justify-center gap-1 rounded bg-primary/10 text-xs font-semibold text-primary">
+                      <Star className="size-3.5 fill-current" />
+                      대표 이미지
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setMain(img.id)}
+                      className="flex h-7 w-full items-center justify-center gap-1 rounded border border-gray-200 bg-white text-xs font-medium text-gray-600 hover:border-primary hover:text-primary"
+                    >
+                      <Star className="size-3.5" />
+                      대표로 지정
+                    </button>
+                  )}
                 </div>
               </div>
             );

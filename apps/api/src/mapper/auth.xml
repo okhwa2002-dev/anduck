@@ -5,6 +5,7 @@
 
   <sql id="userCols">
     id::text AS id, login_id AS "loginId", email, name, phone, user_type AS "userType",
+    failed_login_count AS "failedLoginCount", locked_until AS "lockedUntil",
     created_at AS "createdAt", updated_at AS "updatedAt"
   </sql>
 
@@ -48,11 +49,36 @@
     ON CONFLICT (user_id, permission_id) DO NOTHING
   </insert>
 
+  <update id="recordLoginFailure">
+    UPDATE "user"
+    SET
+      failed_login_count = failed_login_count + 1,
+      locked_until = CASE
+        WHEN failed_login_count + 1 >= #{maxFailures}
+          THEN current_kst_timestamp() + (#{lockSeconds} || ' seconds')::interval
+        ELSE locked_until
+      END,
+      updated_at = current_kst_timestamp()
+    WHERE login_id = #{loginId}
+    RETURNING failed_login_count AS "failedLoginCount", locked_until AS "lockedUntil"
+  </update>
+
+  <update id="clearLoginFailures">
+    UPDATE "user"
+    SET
+      failed_login_count = 0,
+      locked_until = NULL,
+      updated_at = current_kst_timestamp()
+    WHERE id = ${id}
+  </update>
+
   <insert id="createRefreshToken">
-    INSERT INTO refresh_token (user_id, token_hash, user_agent, expires_at)
-    VALUES (${userId}, #{tokenHash}, #{userAgent}, #{expiresAt}::timestamptz)
+    INSERT INTO refresh_token (user_id, token_hash, user_agent, expires_at, last_used_at)
+    VALUES (${userId}, #{tokenHash}, #{userAgent}, #{expiresAt}::timestamptz, current_kst_timestamp())
     RETURNING id::text AS id, user_id::text AS "userId",
-              expires_at AS "expiresAt", created_at AS "createdAt"
+              expires_at AS "expiresAt",
+              last_used_at AS "lastUsedAt",
+              created_at AS "createdAt"
   </insert>
 
   <select id="getRefreshToken">
@@ -60,6 +86,7 @@
       id::text AS id,
       user_id::text AS "userId",
       expires_at AS "expiresAt",
+      last_used_at AS "lastUsedAt",
       revoked_at AS "revokedAt"
     FROM refresh_token
     WHERE token_hash = #{tokenHash}

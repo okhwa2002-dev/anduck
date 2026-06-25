@@ -55,7 +55,7 @@ const registerMenuRoutes = async (app: FastifyInstance) => {
         ...SEC,
         response: { 200: { $ref: "MenuGroup#" }, ...ERR },
       },
-      preHandler: [app.authenticate],
+      preHandler: [app.authenticate, app.authorizeAdmin, app.verifyCsrf],
     },
     menuController.createMenuGroup,
   );
@@ -68,7 +68,7 @@ const registerMenuRoutes = async (app: FastifyInstance) => {
       ...SEC,
       response: { 200: { $ref: "Menu#" }, ...ERR },
     },
-    preHandler: [app.authenticate],
+    preHandler: [app.authenticate, app.authorizeAdmin, app.verifyCsrf],
   }, menuController.createMenu);
 
   app.patch<{ Params: { id: string }; Body: types.UpdateMenuInput }>("/admin/menus/:id", {
@@ -80,7 +80,7 @@ const registerMenuRoutes = async (app: FastifyInstance) => {
       ...SEC,
       response: { 200: { $ref: "Menu#" }, ...ERR },
     },
-    preHandler: [app.authenticate],
+    preHandler: [app.authenticate, app.authorizeAdmin, app.verifyCsrf],
   }, menuController.updateMenu);
 };
 

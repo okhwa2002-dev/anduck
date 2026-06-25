@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import { createHash } from "crypto";
 import * as db from "../utils/db";
 import * as utils from "../utils";
+import { BadRequestError } from "../utils/errors";
 
 export type UserRow = {
   id: string;
@@ -10,6 +11,8 @@ export type UserRow = {
   name: string;
   phone: string | null;
   userType: string;
+  failedLoginCount: number;
+  lockedUntil: Date | string | null;
   createdAt: Date | string;
   updatedAt: Date | string;
 };
@@ -21,6 +24,7 @@ type RefreshTokenRow = {
   userId: string;
   token: string;
   expiresAt: Date | string;
+  lastUsedAt: Date | string;
   revokedAt: Date | string | null;
 };
 
@@ -56,12 +60,44 @@ function hashToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
 }
 
+export function isRefreshTokenIdleExpired(token: RefreshTokenRow, now = new Date()): boolean {
+  const idleTimeout = parseDuration(process.env.JWT_IDLE_TIMEOUT ?? "30m");
+  const lastUsedAt = new Date(token.lastUsedAt).getTime();
+  return now.getTime() - lastUsedAt > idleTimeout;
+}
+
+function getLoginMaxFailures(): number {
+  const n = parseInt(process.env.LOGIN_MAX_FAILURES ?? "5", 10);
+  return Number.isFinite(n) && n > 0 ? n : 5;
+}
+
+function isAccountLocked(user: UserWithHash, now = new Date()): boolean {
+  return user.lockedUntil ? new Date(user.lockedUntil).getTime() > now.getTime() : false;
+}
+
 const authService = {
   async validateCredentials(loginId: string, password: string) {
     const user = await db.queryOne<UserWithHash>("auth", "getUserByLoginId", { loginId });
     if (!user) return null;
+
+    if (isAccountLocked(user)) {
+      throw new BadRequestError("계정이 잠겨 있습니다. 잠시 후 다시 시도해 주세요.");
+    }
+
     const valid = await bcrypt.compare(password, user.passwordHash);
-    return valid ? mapUser(user) : null;
+    if (!valid) {
+      await db.execute("auth", "recordLoginFailure", {
+        loginId,
+        maxFailures: getLoginMaxFailures(),
+        lockSeconds: Math.floor(parseDuration(process.env.LOGIN_LOCK_DURATION ?? "30m") / 1000),
+      });
+      return null;
+    }
+
+    await db.execute("auth", "clearLoginFailures", {
+      id: utils.pgId(user.id),
+    });
+    return mapUser(user);
   },
 
   async createUser(loginId: string, email: string, password: string, name: string, phone?: string, userType = "MEMBER") {
@@ -100,6 +136,8 @@ const authService = {
   async getRefreshToken(token: string): Promise<RefreshTokenRow | null> {
     return db.queryOne<RefreshTokenRow>("auth", "getRefreshToken", { tokenHash: hashToken(token) });
   },
+
+  isRefreshTokenIdleExpired,
 
   async revokeToken(userId: string, token: string) {
     await db.execute("auth", "revokeUserRefreshToken", {

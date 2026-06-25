@@ -7,6 +7,8 @@ const ERR = { 400: { $ref: "ErrorResponse#" }, 401: { $ref: "ErrorResponse#" }, 
 
 const registerAdminRoutes = async (app: FastifyInstance) => {
   app.addHook("preHandler", app.authenticate);
+  app.addHook("preHandler", app.authorizeAdmin);
+  app.addHook("preHandler", app.verifyCsrf);
 
   // ─── Dashboard ──────────────────────────────────────────────────────────────
   app.get("/admin/dashboard", {

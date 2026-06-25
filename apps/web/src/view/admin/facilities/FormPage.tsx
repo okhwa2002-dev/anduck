@@ -221,7 +221,9 @@ export function FacilityFormPage({ id }: Props) {
         {/* 이미지 */}
         <div className="space-y-1.5">
           <Label>이미지</Label>
-          <p className="text-xs text-gray-400">첫 번째 이미지가 대표 이미지로 설정됩니다. 썸네일 위에 마우스를 올리면 대표 변경·삭제가 가능합니다.</p>
+          <p className="text-xs text-gray-400">
+            첫 번째 이미지는 자동으로 대표 이미지가 됩니다. 다른 이미지를 대표로 사용하려면 썸네일 아래의 대표로 지정을 선택하세요.
+          </p>
           <ImageUploader
             value={images}
             mainImageId={mainImageId}

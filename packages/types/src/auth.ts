@@ -30,6 +30,7 @@ export interface User {
 export interface AuthTokens {
   accessToken: string;
   refreshToken: string;
+  csrfToken: string;
 }
 
 export interface LoginRequest {

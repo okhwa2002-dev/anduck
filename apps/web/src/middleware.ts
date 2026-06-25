@@ -64,6 +64,13 @@ export async function middleware(request: NextRequest) {
     maxAge: 7 * 24 * 60 * 60,
     path: "/",
   });
+  response.cookies.set("csrf_token", refreshed.tokens.csrfToken, {
+    httpOnly: false,
+    secure: IS_PROD,
+    sameSite: "lax",
+    maxAge: 7 * 24 * 60 * 60,
+    path: "/",
+  });
   return response;
 }
 

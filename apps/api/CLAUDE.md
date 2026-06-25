@@ -4,9 +4,11 @@
 - [coding.md](../../.claude/roles/coding.md) — 아키텍처 흐름, import/export, 이미지 처리, 로깅
 - [database.md](../../.claude/roles/database.md) — XML 매퍼, pg 타입 변환, 스키마 컨벤션, 헬퍼
 - [auth.md](../../.claude/roles/auth.md) — JWT, authenticate / optionalAuthenticate 패턴
+- [security.md](../../.claude/roles/security.md) — 관리자 세션, CSRF, role guard, 보안 검증 규칙
 - [types.md](../../.claude/roles/types.md) — @anduck/types 구조, 빌드 순서, 필드명 규칙
 - [filter-system.md](../../.claude/roles/filter-system.md) — 멀티 필터 구조, FilterCondition, SQL 변환 패턴
 - [file-upload.md](../../.claude/roles/file-upload.md) — 파일 업로드 엔드포인트, 저장 방식, 엔티티 연결 패턴
+- [image-upload.md](../../.claude/roles/image-upload.md) — 공통 이미지 업로드, 대표 이미지 지정/삭제 규칙
 - [excel-export.md](../../.claude/roles/excel-export.md) — 엑셀 다운로드 엔드포인트, buildExcel/sendExcelReply 유틸, 새 엔티티 추가 방법
 
 ---
@@ -17,6 +19,8 @@
    - `database.md` — 매퍼 문법, 스키마 컨벤션 (항상)
    - `coding.md` — 아키텍처, import/export 패턴 (항상)
    - `auth.md` — 인증이 필요한 기능
+   - `security.md` — 관리자 인증/권한/CSRF/세션 관련 작업
+   - `image-upload.md` — 이미지 업로드/대표 이미지 관련 작업
    - `types.md` — 공유 타입 수정이 필요한 경우
 1. **`anduck_schema.sql`** — 테이블 구조, 컬럼명, 제약 확인
 2. **`packages/types/src/`** — 입출력 타입 정의 (없으면 추가)

@@ -17,8 +17,10 @@ import registerAuthRoutes from "./routes/authRoutes";
 import registerPublicRoutes from "./routes/publicRoutes";
 import registerMenuRoutes from "./routes/menuRoutes";
 import { registerSchemas } from "./schemas.js";
+import { setSecurityHeaders } from "./utils/securityHeaders";
+import auditLogService from "./services/auditLogService";
 
-export type JwtPayload = { sub: string; email: string; userType: string };
+export type JwtPayload = { sub: string; email: string; userType: string; csrfToken?: string };
 
 declare module "@fastify/jwt" {
   interface FastifyJWT {
@@ -43,6 +45,10 @@ export async function createApp(): Promise<FastifyInstance> {
   });
 
   setDbLogger(app.log);
+
+  app.addHook("onRequest", async (_request, reply) => {
+    setSecurityHeaders(reply);
+  });
 
   await app.register(swagger, {
     openapi: {
@@ -95,11 +101,36 @@ export async function createApp(): Promise<FastifyInstance> {
     }
   });
 
+  app.decorate("authorizeAdmin", async (request: FastifyRequest, reply: FastifyReply) => {
+    const allowed = request.user.userType === "ADMIN" || request.user.userType === "SUPER_ADMIN";
+    if (!allowed) {
+      return reply.code(403).send({ message: "관리자 권한이 필요합니다" });
+    }
+  });
+
   app.decorate("optionalAuthenticate", async (request: FastifyRequest) => {
     try {
       await request.jwtVerify();
     } catch {
       // 토큰 없거나 유효하지 않으면 게스트로 처리
+    }
+  });
+
+  app.decorate("verifyCsrf", async (request: FastifyRequest, reply: FastifyReply) => {
+    if (["GET", "HEAD", "OPTIONS"].includes(request.method)) return;
+
+    const header = request.headers["x-csrf-token"];
+    const csrfToken = Array.isArray(header) ? header[0] : header;
+    if (!csrfToken || csrfToken !== request.user.csrfToken) {
+      return reply.code(403).send({ message: "CSRF 토큰이 유효하지 않습니다" });
+    }
+  });
+
+  app.addHook("onResponse", async (request, reply) => {
+    try {
+      await auditLogService.recordAdminAction(request, reply);
+    } catch (error) {
+      request.log.error({ error }, "failed to write admin audit log");
     }
   });
 
@@ -129,6 +160,8 @@ export async function createApp(): Promise<FastifyInstance> {
 declare module "fastify" {
   interface FastifyInstance {
     authenticate: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
+    authorizeAdmin: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
     optionalAuthenticate: (request: FastifyRequest) => Promise<void>;
+    verifyCsrf: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
   }
 }

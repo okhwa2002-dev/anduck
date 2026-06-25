@@ -81,6 +81,8 @@ CREATE TABLE "user" (
   "name"          TEXT NOT NULL,
   "phone"         TEXT,
   "user_type"     TEXT NOT NULL DEFAULT 'MEMBER',
+  "failed_login_count" INTEGER NOT NULL DEFAULT 0,
+  "locked_until"  TIMESTAMP(3),
   "created_at"    TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "created_by"    BIGINT,
   "updated_at"    TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
@@ -95,10 +97,51 @@ COMMENT ON COLUMN "user"."password_hash" IS 'bcrypt 해시된 비밀번호';
 COMMENT ON COLUMN "user"."name"          IS '이름';
 COMMENT ON COLUMN "user"."phone"         IS '연락처';
 COMMENT ON COLUMN "user"."user_type"     IS '사용자 유형 (MEMBER·ADMIN·SUPER_ADMIN)';
+COMMENT ON COLUMN "user"."failed_login_count" IS '연속 로그인 실패 횟수';
+COMMENT ON COLUMN "user"."locked_until"  IS '로그인 잠금 만료 일시';
 COMMENT ON COLUMN "user"."created_at"    IS '생성일시';
 COMMENT ON COLUMN "user"."created_by"    IS '생성자 ID (user.id 소프트 참조)';
 COMMENT ON COLUMN "user"."updated_at"    IS '수정일시';
 COMMENT ON COLUMN "user"."updated_by"    IS '수정자 ID (user.id 소프트 참조)';
+
+CREATE INDEX "user_locked_until_idx" ON "user" ("locked_until");
+
+-- ===========================================================================
+-- admin_audit_log (관리자 작업 로그)
+-- ===========================================================================
+CREATE TABLE "admin_audit_log" (
+  "id"              BIGSERIAL PRIMARY KEY,
+  "user_id"         BIGINT,
+  "user_type"       TEXT,
+  "method"          TEXT NOT NULL,
+  "path"            TEXT NOT NULL,
+  "route_path"      TEXT,
+  "status_code"     INTEGER,
+  "ip_address"      TEXT,
+  "user_agent"      TEXT,
+  "request_payload" JSONB,
+  "created_at"      TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
+  CONSTRAINT "admin_audit_log_user_id_fkey"
+    FOREIGN KEY ("user_id") REFERENCES "user"("id")
+    ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+COMMENT ON TABLE  "admin_audit_log"                   IS '관리자 작업 로그';
+COMMENT ON COLUMN "admin_audit_log"."id"              IS '관리자 작업 로그 고유 ID';
+COMMENT ON COLUMN "admin_audit_log"."user_id"         IS '작업 사용자 ID (user.id)';
+COMMENT ON COLUMN "admin_audit_log"."user_type"       IS '작업 당시 사용자 유형';
+COMMENT ON COLUMN "admin_audit_log"."method"          IS 'HTTP 메서드';
+COMMENT ON COLUMN "admin_audit_log"."path"            IS '요청 경로';
+COMMENT ON COLUMN "admin_audit_log"."route_path"      IS 'Fastify 라우트 경로';
+COMMENT ON COLUMN "admin_audit_log"."status_code"     IS '응답 상태 코드';
+COMMENT ON COLUMN "admin_audit_log"."ip_address"      IS '요청 IP 주소';
+COMMENT ON COLUMN "admin_audit_log"."user_agent"      IS '요청 User-Agent';
+COMMENT ON COLUMN "admin_audit_log"."request_payload" IS '민감정보가 마스킹된 요청 데이터';
+COMMENT ON COLUMN "admin_audit_log"."created_at"      IS '로그 생성일시';
+
+CREATE INDEX "admin_audit_log_user_id_idx" ON "admin_audit_log" ("user_id");
+CREATE INDEX "admin_audit_log_created_at_idx" ON "admin_audit_log" ("created_at");
+CREATE INDEX "admin_audit_log_method_idx" ON "admin_audit_log" ("method");
 
 -- ===========================================================================
 -- image
@@ -936,6 +979,7 @@ CREATE TABLE "refresh_token" (
   "token_hash" TEXT NOT NULL UNIQUE,
   "user_agent" TEXT,
   "expires_at" TIMESTAMP(3) NOT NULL,
+  "last_used_at" TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "revoked_at" TIMESTAMP(3),
   "created_at" TIMESTAMP(3) NOT NULL DEFAULT current_kst_timestamp(),
   "created_by" BIGINT,
@@ -950,11 +994,13 @@ COMMENT ON COLUMN "refresh_token"."user_id"     IS '토큰 소유 사용자 ID (
 COMMENT ON COLUMN "refresh_token"."token_hash"  IS 'SHA-256 해시된 리프레시 토큰 값';
 COMMENT ON COLUMN "refresh_token"."user_agent"  IS '발급 시 클라이언트 User-Agent';
 COMMENT ON COLUMN "refresh_token"."expires_at"  IS '토큰 만료일시';
+COMMENT ON COLUMN "refresh_token"."last_used_at" IS '마지막 세션 활동 일시 (idle timeout 판정 기준)';
 COMMENT ON COLUMN "refresh_token"."revoked_at"  IS '토큰 폐기일시 (로그아웃·재발급 시 기록)';
 COMMENT ON COLUMN "refresh_token"."created_at"  IS '발급일시';
 COMMENT ON COLUMN "refresh_token"."created_by"  IS '생성자 ID (user.id 소프트 참조)';
 
 CREATE INDEX "refresh_token_user_id_idx" ON "refresh_token" ("user_id");
+CREATE INDEX "refresh_token_last_used_at_idx" ON "refresh_token" ("last_used_at");
 
 -- ===========================================================================
 -- push_token (FCM 디바이스 토큰 - 예약확정 / 공지 푸시)

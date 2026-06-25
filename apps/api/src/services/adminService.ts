@@ -256,7 +256,11 @@ const adminService = {
       address: body.address ? utils.pgJsonb(body.address) : null,
       latitude: body.location?.latitude ?? null,
       longitude: body.location?.longitude ?? null,
-      mainImageId: body.mainImageId !== undefined ? utils.pgId(body.mainImageId) : null,
+      mainImageId: body.mainImageId !== undefined
+        ? utils.pgId(body.mainImageId)
+        : body.imageIds !== undefined
+          ? "NULL"
+          : null,
       imageIds: body.imageIds != null ? utils.pgBigintArr(body.imageIds) : null,
       mainOpenYn: body.mainOpenYn ?? null,
       activeYn: body.activeYn ?? null,

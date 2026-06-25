@@ -10,7 +10,7 @@ export default async function registerFilesRoutes(app: FastifyInstance) {
   const { uploadDir, publicUrl } = loadConfig();
 
   app.post("/files/images", {
-    preHandler: [app.authenticate],
+    preHandler: [app.authenticate, app.authorizeAdmin, app.verifyCsrf],
     config: { rateLimit: { max: 30, timeWindow: "1m" } },
   }, async (request, reply) => {
     const data = await request.file({ limits: { fileSize: MAX_FILE_SIZE } });

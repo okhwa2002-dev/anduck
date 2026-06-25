@@ -3,6 +3,7 @@ import axios, { type AxiosInstance } from "axios";
 export interface ApiClientOptions {
   baseURL: string;
   getToken?: () => string | null | Promise<string | null>;
+  getCsrfToken?: () => string | null | Promise<string | null>;
   onUnauthorized?: () => void;
 }
 
@@ -17,6 +18,14 @@ export function createApiClient(options: ApiClientOptions): AxiosInstance {
       const token = await options.getToken();
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
+
+    const method = config.method?.toUpperCase();
+    if (options.getCsrfToken && method && !["GET", "HEAD", "OPTIONS"].includes(method)) {
+      const csrfToken = await options.getCsrfToken();
+      if (csrfToken) {
+        config.headers["X-CSRF-Token"] = csrfToken;
       }
     }
 

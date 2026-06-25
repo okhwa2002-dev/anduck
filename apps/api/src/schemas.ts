@@ -114,8 +114,9 @@ export const S_AuthTokenResponse = {
       properties: {
         accessToken: { type: "string" },
         refreshToken: { type: "string" },
+        csrfToken: { type: "string" },
       },
-      required: ["accessToken", "refreshToken"],
+      required: ["accessToken", "refreshToken", "csrfToken"],
     },
   },
   required: ["user", "tokens"],
@@ -131,8 +132,9 @@ export const S_RefreshTokenResponse = {
       properties: {
         accessToken: { type: "string" },
         refreshToken: { type: "string" },
+        csrfToken: { type: "string" },
       },
-      required: ["accessToken", "refreshToken"],
+      required: ["accessToken", "refreshToken", "csrfToken"],
     },
   },
   required: ["user", "tokens"],
