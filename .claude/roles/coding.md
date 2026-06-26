@@ -43,6 +43,20 @@ import adminService from "../services/adminService";
 import adminController from "../controllers/adminController";
 ```
 
+### api-client (`packages/api-client/src/endpoints.ts`)
+
+`@anduck/types`는 타입이 많으므로 namespace import로 한 번에 불러온다.
+개별 named import 방식은 사용하지 않는다.
+
+```typescript
+import type { AxiosInstance } from "axios";
+import type * as types from "@anduck/types";
+
+// 사용 시
+list: (query?: types.ListQuery) => ...
+create: (body: types.CreateXxxInput) => ...
+```
+
 ---
 
 ## export 스타일

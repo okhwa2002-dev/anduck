@@ -31,6 +31,26 @@ const registerAdminRoutes = async (app: FastifyInstance) => {
     },
   }, adminController.updateVillageProfile);
 
+  app.get<{ Querystring: types.ListQuery }>("/admin/village/intros", {
+    schema: { tags: ["Admin / Village"], summary: "마을소개 목록", querystring: { $ref: "ListQuery#" }, ...SEC },
+  }, adminController.listVillageIntros);
+
+  app.post<{ Body: types.CreateVillageIntroInput }>("/admin/village/intros", {
+    schema: { tags: ["Admin / Village"], summary: "마을소개 등록", ...SEC },
+  }, adminController.createVillageIntro);
+
+  app.get<{ Params: { id: string } }>("/admin/village/intros/:id", {
+    schema: { tags: ["Admin / Village"], summary: "마을소개 상세", ...SEC },
+  }, adminController.getVillageIntro);
+
+  app.patch<{ Params: { id: string }; Body: types.UpdateVillageIntroInput }>("/admin/village/intros/:id", {
+    schema: { tags: ["Admin / Village"], summary: "마을소개 수정", ...SEC },
+  }, adminController.updateVillageIntro);
+
+  app.delete<{ Params: { id: string } }>("/admin/village/intros/:id", {
+    schema: { tags: ["Admin / Village"], summary: "마을소개 삭제", ...SEC },
+  }, adminController.deleteVillageIntro);
+
   // ─── Programs ───────────────────────────────────────────────────────────────
   app.get<{ Querystring: types.ListQuery }>("/admin/programs", {
     schema: {

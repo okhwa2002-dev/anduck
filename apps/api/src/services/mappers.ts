@@ -239,6 +239,7 @@ const mappers = {
       phone: r.phone ?? undefined,
       email: r.email ?? undefined,
       images: imgRefs(imgs, r.imageIds),
+      openYn: (r.openYn ?? "Y") as string,
       createdAt: ts(r.createdAt),
       updatedAt: ts(r.updatedAt),
     };

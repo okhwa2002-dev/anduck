@@ -17,6 +17,29 @@ const adminController = {
     return adminService.updateVillageProfile(req.body);
   },
 
+  async listVillageIntros(req: Req<{ Querystring: types.ListQuery }>) {
+    return adminService.listAdminVillageIntros(req.query);
+  },
+
+  async getVillageIntro(req: Req<{ Params: { id: string } }>) {
+    const item = await adminService.getAdminVillageIntro(req.params.id);
+    return item ?? notFound("마을소개를 찾을 수 없습니다");
+  },
+
+  async createVillageIntro(req: Req<{ Body: types.CreateVillageIntroInput }>, reply: FastifyReply) {
+    const item = await adminService.createAdminVillageIntro(req.body);
+    return reply.code(201).send(item);
+  },
+
+  async updateVillageIntro(req: Req<{ Params: { id: string }; Body: types.UpdateVillageIntroInput }>) {
+    return adminService.updateAdminVillageIntro(req.params.id, req.body);
+  },
+
+  async deleteVillageIntro(req: Req<{ Params: { id: string } }>, reply: FastifyReply) {
+    await adminService.deleteAdminVillageIntro(req.params.id);
+    return reply.code(204).send();
+  },
+
   async listPrograms(req: Req<{ Querystring: types.ListQuery }>) {
     return adminService.listAdminPrograms(req.query);
   },

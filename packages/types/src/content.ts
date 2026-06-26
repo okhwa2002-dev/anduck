@@ -59,12 +59,22 @@ export interface VillageProfile extends Timestamps {
   id: string;
   name: string;
   description: string;
-  address: Address;
+  address?: Address;
   location?: GeoPoint;
   phone?: string;
   email?: string;
   images: ImageRef[];
+  openYn: YN;
 }
+
+export interface CreateVillageIntroInput {
+  title: string;
+  body?: string;
+  imageIds?: string[];
+  openYn?: YN;
+}
+
+export type UpdateVillageIntroInput = Partial<CreateVillageIntroInput>;
 
 export interface CreateNoticeInput {
   title: string;

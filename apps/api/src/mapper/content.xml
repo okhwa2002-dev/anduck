@@ -8,6 +8,7 @@
     address, latitude, longitude,
     phone, email,
     image_ids::text[] AS "imageIds",
+    open_yn AS "openYn",
     created_at AS "createdAt",
     updated_at AS "updatedAt"
   </sql>
@@ -25,6 +26,42 @@
     RETURNING <include refid="profileCols"/>
   </insert>
 
+  <select id="countVillageProfiles">
+    SELECT COUNT(*) AS total FROM village_profile
+    <where>
+      <if test="openYns != null">open_yn = ANY(${openYns})</if>
+      <if test="q != null">AND name ILIKE '%' || #{q} || '%'</if>
+    </where>
+  </select>
+
+  <select id="listVillageProfiles">
+    SELECT <include refid="profileCols"/>
+    FROM village_profile
+    <where>
+      <if test="openYns != null">open_yn = ANY(${openYns})</if>
+      <if test="q != null">AND name ILIKE '%' || #{q} || '%'</if>
+    </where>
+    ORDER BY created_at ASC
+    ${limitOffset}
+  </select>
+
+  <select id="getVillageProfileById">
+    SELECT <include refid="profileCols"/>
+    FROM village_profile
+    WHERE id = ${id}
+    LIMIT 1
+  </select>
+
+  <insert id="createVillageIntro">
+    INSERT INTO village_profile (name, description, image_ids, open_yn)
+    VALUES (#{name}, #{description}, ${imageIds}, #{openYn})
+    RETURNING <include refid="profileCols"/>
+  </insert>
+
+  <delete id="deleteVillageProfile">
+    DELETE FROM village_profile WHERE id = ${id}
+  </delete>
+
   <update id="updateVillageProfile">
     UPDATE village_profile
     <set>
@@ -36,6 +73,7 @@
       <if test="phone != null">phone = #{phone},</if>
       <if test="email != null">email = #{email},</if>
       <if test="imageIds != null">image_ids = ${imageIds},</if>
+      <if test="openYn != null">open_yn = #{openYn},</if>
     </set>
     WHERE id = ${id}
     RETURNING <include refid="profileCols"/>

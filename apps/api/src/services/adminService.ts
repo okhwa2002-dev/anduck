@@ -78,6 +78,60 @@ const adminService = {
     return mappers.mapVillageProfile(r, imgs);
   },
 
+  // ─── Village Intro (multi-row) ────────────────────────────────────────────
+  async listAdminVillageIntros(q: types.ListQuery) {
+    const lo = utils.limitOffsetSQL(q);
+    const openYns = utils.filterVals(q.filters, "openYn");
+    const params = { openYns: openYns ? utils.pgTextArr(openYns) : null, q: q.q ?? null };
+    const [rows, countRow] = await Promise.all([
+      db.query("content", "listVillageProfiles", { ...params, limitOffset: lo }),
+      q.all ? null : db.queryOne<{ total: string }>("content", "countVillageProfiles", params),
+    ]);
+    const items = (rows as any[]).map((r) => mappers.mapVillageProfile(r, new Map()));
+    return utils.toPaged(items, q.all ? items.length : Number(countRow?.total ?? 0), q);
+  },
+
+  async getAdminVillageIntro(id: string) {
+    const row = await db.queryOne("content", "getVillageProfileById", { id: utils.pgId(id) });
+    if (!row) return null;
+    const imgs = await imagesService.getImages((row as any).imageIds ?? []);
+    return mappers.mapVillageProfile(row as any, imgs);
+  },
+
+  async createAdminVillageIntro(body: types.CreateVillageIntroInput) {
+    const row = await db.queryOne("content", "createVillageIntro", {
+      name: body.title,
+      description: body.body ?? null,
+      imageIds: utils.pgBigintArr(body.imageIds ?? []),
+      openYn: body.openYn ?? "Y",
+    });
+    if (!row) throw new Error("마을소개 등록에 실패했습니다");
+    const imgs = await imagesService.getImages((row as any).imageIds ?? []);
+    return mappers.mapVillageProfile(row as any, imgs);
+  },
+
+  async updateAdminVillageIntro(id: string, body: types.UpdateVillageIntroInput) {
+    const row = await db.queryOne("content", "updateVillageProfile", {
+      id: utils.pgId(id),
+      name: body.title ?? null,
+      description: body.body ?? null,
+      address: null,
+      latitude: null,
+      longitude: null,
+      phone: null,
+      email: null,
+      imageIds: body.imageIds != null ? utils.pgBigintArr(body.imageIds) : null,
+      openYn: body.openYn ?? null,
+    });
+    if (!row) throw utils.notFound("마을소개를 찾을 수 없습니다");
+    const imgs = await imagesService.getImages((row as any).imageIds ?? []);
+    return mappers.mapVillageProfile(row as any, imgs);
+  },
+
+  async deleteAdminVillageIntro(id: string) {
+    await db.execute("content", "deleteVillageProfile", { id: utils.pgId(id) });
+  },
+
   // ─── Reservations ─────────────────────────────────────────────────────────
   async listAdminReservations(q: types.ListQuery) {
     const lo = utils.limitOffsetSQL(q);

@@ -108,6 +108,7 @@ apps/web/src/
 | `/admin/notices` | AdminLayout | `admin/notices/IndexPage` |
 | `/admin/gallery` | AdminLayout | `admin/gallery/IndexPage` |
 | `/admin/facilities` | AdminLayout | `admin/facilities/IndexPage` |
+| `/admin/village` | AdminLayout | `admin/village/IndexPage` |
 
 ---
 

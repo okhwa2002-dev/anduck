@@ -1,49 +1,9 @@
 import type { AxiosInstance } from "axios";
-import type {
-  Accommodation,
-  AuthResponse,
-  AvailabilityQuery,
-  AvailabilityResult,
-  Banner,
-  CodeGroup,
-  CreateAccommodationInput,
-  CreateBannerInput,
-  CreateFacilityInput,
-  CreateGalleryItemInput,
-  CreateNoticeInput,
-  CreateProgramInput,
-  CreateReservationInput,
-  CreateRoomInput,
-  DashboardSummary,
-  Facility,
-  FacilityKind,
-  FilterCondition,
-  GalleryItem,
-  ListQuery,
-  LoginRequest,
-  Menu,
-  Notice,
-  Paginated,
-  Program,
-  Reservation,
-  ReservationLookupQuery,
-  Room,
-  UpdateAccommodationInput,
-  UpdateBannerInput,
-  UpdateFacilityInput,
-  UpdateGalleryItemInput,
-  UpdateNoticeInput,
-  UpdateProgramInput,
-  UpdateReservationStatusInput,
-  UpdateRoomInput,
-  UpdateVillageProfileInput,
-  UploadedFile,
-  VillageProfile,
-} from "@anduck/types";
+import type * as types from "@anduck/types";
 
-type WithFilters<T> = Omit<T, "filters"> & { filters?: FilterCondition[] };
+type WithFilters<T> = Omit<T, "filters"> & { filters?: types.FilterCondition[] };
 
-function serializeFilters<T extends { filters?: FilterCondition[] }>(query?: T) {
+function serializeFilters<T extends { filters?: types.FilterCondition[] }>(query?: T) {
   if (!query) return undefined;
   const { filters, ...rest } = query;
   return { ...rest, ...(filters?.length ? { filters: JSON.stringify(filters) } : {}) };
@@ -52,12 +12,12 @@ function serializeFilters<T extends { filters?: FilterCondition[] }>(query?: T) 
 export function createEndpoints(http: AxiosInstance) {
   return {
     auth: {
-      login: (body: LoginRequest) =>
-        http.post<AuthResponse>("/auth/login", body).then((r) => r.data),
-      me: () => http.get<AuthResponse["user"]>("/auth/me").then((r) => r.data),
+      login: (body: types.LoginRequest) =>
+        http.post<types.AuthResponse>("/auth/login", body).then((r) => r.data),
+      me: () => http.get<types.AuthResponse["user"]>("/auth/me").then((r) => r.data),
       refresh: (refreshToken: string) =>
         http
-          .post<AuthResponse>("/auth/refresh", { refreshToken })
+          .post<types.AuthResponse>("/auth/refresh", { refreshToken })
           .then((r) => r.data),
       logout: () => http.post<void>("/auth/logout").then((r) => r.data),
     },
@@ -65,109 +25,109 @@ export function createEndpoints(http: AxiosInstance) {
     menus: {
       listForUser: (groupCode?: string) =>
         http
-          .get<Menu[]>("/auth/menus", { params: { groupCode } })
+          .get<types.Menu[]>("/auth/menus", { params: { groupCode } })
           .then((r) => r.data),
     },
 
     codes: {
       listGroups: (groupCodes?: string[] | string) =>
         http
-          .get<CodeGroup[]>("/codes", {
+          .get<types.CodeGroup[]>("/codes", {
             params: {
               groupCodes: Array.isArray(groupCodes) ? groupCodes.join(",") : groupCodes,
             },
           })
           .then((r) => r.data),
       getGroup: (groupCode: string) =>
-        http.get<CodeGroup>(`/codes/${groupCode}`).then((r) => r.data),
+        http.get<types.CodeGroup>(`/codes/${groupCode}`).then((r) => r.data),
     },
 
     home: {
       get: () =>
         http
           .get<{
-            banners: Banner[];
-            featuredPrograms: Program[];
-            featuredAccommodations: Accommodation[];
-            latestNotices: Notice[];
-            featuredFacilities: Facility[];
+            banners: types.Banner[];
+            featuredPrograms: types.Program[];
+            featuredAccommodations: types.Accommodation[];
+            latestNotices: types.Notice[];
+            featuredFacilities: types.Facility[];
           }>("/home")
           .then((r) => r.data),
     },
 
     village: {
       getProfile: () =>
-        http.get<VillageProfile>("/village/profile").then((r) => r.data),
+        http.get<types.VillageProfile>("/village/profile").then((r) => r.data),
     },
 
     programs: {
-      list: (query?: ListQuery) =>
-        http.get<Program[]>("/programs", { params: query }).then((r) => r.data),
+      list: (query?: types.ListQuery) =>
+        http.get<types.Program[]>("/programs", { params: query }).then((r) => r.data),
       get: (id: string) =>
-        http.get<Program>(`/programs/${id}`).then((r) => r.data),
+        http.get<types.Program>(`/programs/${id}`).then((r) => r.data),
     },
 
     accommodations: {
-      list: (query?: ListQuery) =>
+      list: (query?: types.ListQuery) =>
         http
-          .get<Accommodation[]>("/accommodations", { params: query })
+          .get<types.Accommodation[]>("/accommodations", { params: query })
           .then((r) => r.data),
       get: (id: string) =>
-        http.get<Accommodation>(`/accommodations/${id}`).then((r) => r.data),
+        http.get<types.Accommodation>(`/accommodations/${id}`).then((r) => r.data),
       listRooms: (accommodationId: string) =>
         http
-          .get<Room[]>(`/accommodations/${accommodationId}/rooms`)
+          .get<types.Room[]>(`/accommodations/${accommodationId}/rooms`)
           .then((r) => r.data),
       getRoom: (accommodationId: string, roomId: string) =>
         http
-          .get<Room>(`/accommodations/${accommodationId}/rooms/${roomId}`)
+          .get<types.Room>(`/accommodations/${accommodationId}/rooms/${roomId}`)
           .then((r) => r.data),
     },
 
     reservations: {
-      create: (body: CreateReservationInput) =>
-        http.post<Reservation>("/reservations", body).then((r) => r.data),
-      lookup: (query: ReservationLookupQuery) =>
+      create: (body: types.CreateReservationInput) =>
+        http.post<types.Reservation>("/reservations", body).then((r) => r.data),
+      lookup: (query: types.ReservationLookupQuery) =>
         http
-          .get<Reservation[]>("/reservations/lookup", { params: query })
+          .get<types.Reservation[]>("/reservations/lookup", { params: query })
           .then((r) => r.data),
-      checkAvailability: (query: AvailabilityQuery) =>
+      checkAvailability: (query: types.AvailabilityQuery) =>
         http
-          .get<AvailabilityResult>("/reservations/availability", {
+          .get<types.AvailabilityResult>("/reservations/availability", {
             params: query,
           })
           .then((r) => r.data),
     },
 
     notices: {
-      list: (query?: ListQuery) =>
-        http.get<Notice[]>("/notices", { params: query }).then((r) => r.data),
+      list: (query?: types.ListQuery) =>
+        http.get<types.Notice[]>("/notices", { params: query }).then((r) => r.data),
       get: (id: string) =>
-        http.get<Notice>(`/notices/${id}`).then((r) => r.data),
+        http.get<types.Notice>(`/notices/${id}`).then((r) => r.data),
     },
 
     gallery: {
-      list: (query?: ListQuery) =>
+      list: (query?: types.ListQuery) =>
         http
-          .get<GalleryItem[]>("/gallery", { params: query })
+          .get<types.GalleryItem[]>("/gallery", { params: query })
           .then((r) => r.data),
       get: (id: string) =>
-        http.get<GalleryItem>(`/gallery/${id}`).then((r) => r.data),
+        http.get<types.GalleryItem>(`/gallery/${id}`).then((r) => r.data),
     },
 
     facilities: {
-      list: (query?: ListQuery & { kind?: FacilityKind }) =>
+      list: (query?: types.ListQuery & { kind?: types.FacilityKind }) =>
         http
-          .get<Facility[]>("/facilities", { params: query })
+          .get<types.Facility[]>("/facilities", { params: query })
           .then((r) => r.data),
       get: (id: string) =>
-        http.get<Facility>(`/facilities/${id}`).then((r) => r.data),
+        http.get<types.Facility>(`/facilities/${id}`).then((r) => r.data),
     },
 
     files: {
       uploadImage: (formData: unknown, source?: string) =>
         http
-          .post<UploadedFile>("/files/images", formData, {
+          .post<types.UploadedFile>("/files/images", formData, {
             headers: { "Content-Type": "multipart/form-data" },
             params: source ? { source } : undefined,
           })
@@ -177,63 +137,77 @@ export function createEndpoints(http: AxiosInstance) {
     admin: {
       dashboard: {
         summary: () =>
-          http.get<DashboardSummary>("/admin/dashboard").then((r) => r.data),
+          http.get<types.DashboardSummary>("/admin/dashboard").then((r) => r.data),
       },
 
       village: {
-        updateProfile: (body: UpdateVillageProfileInput) =>
+        updateProfile: (body: types.UpdateVillageProfileInput) =>
           http
-            .patch<VillageProfile>("/admin/village/profile", body)
+            .patch<types.VillageProfile>("/admin/village/profile", body)
             .then((r) => r.data),
+        intros: {
+          list: (query?: WithFilters<types.ListQuery>) =>
+            http
+              .get<types.Paginated<types.VillageProfile>>("/admin/village/intros", { params: serializeFilters(query) })
+              .then((r) => r.data),
+          get: (id: string) =>
+            http.get<types.VillageProfile>(`/admin/village/intros/${id}`).then((r) => r.data),
+          create: (body: types.CreateVillageIntroInput) =>
+            http.post<types.VillageProfile>("/admin/village/intros", body).then((r) => r.data),
+          update: (id: string, body: types.UpdateVillageIntroInput) =>
+            http.patch<types.VillageProfile>(`/admin/village/intros/${id}`, body).then((r) => r.data),
+          remove: (id: string) =>
+            http.delete<void>(`/admin/village/intros/${id}`).then((r) => r.data),
+        },
       },
 
       programs: {
-        list: (query?: ListQuery) =>
+        list: (query?: types.ListQuery) =>
           http
-            .get<Paginated<Program>>("/admin/programs", { params: query })
+            .get<types.Paginated<types.Program>>("/admin/programs", { params: query })
             .then((r) => r.data),
-        create: (body: CreateProgramInput) =>
-          http.post<Program>("/admin/programs", body).then((r) => r.data),
-        update: (id: string, body: UpdateProgramInput) =>
-          http.patch<Program>(`/admin/programs/${id}`, body).then((r) => r.data),
+        create: (body: types.CreateProgramInput) =>
+          http.post<types.Program>("/admin/programs", body).then((r) => r.data),
+        update: (id: string, body: types.UpdateProgramInput) =>
+          http.patch<types.Program>(`/admin/programs/${id}`, body).then((r) => r.data),
         remove: (id: string) =>
           http.delete<void>(`/admin/programs/${id}`).then((r) => r.data),
       },
 
       accommodations: {
-        list: (query?: ListQuery) =>
+        list: (query?: types.ListQuery) =>
           http
-            .get<Paginated<Accommodation>>("/admin/accommodations", {
+            .get<types.Paginated<types.Accommodation>>("/admin/accommodations", {
               params: query,
             })
             .then((r) => r.data),
-        create: (body: CreateAccommodationInput) =>
+        create: (body: types.CreateAccommodationInput) =>
           http
-            .post<Accommodation>("/admin/accommodations", body)
+            .post<types.Accommodation>("/admin/accommodations", body)
             .then((r) => r.data),
-        update: (id: string, body: UpdateAccommodationInput) =>
+        update: (id: string, body: types.UpdateAccommodationInput) =>
           http
-            .patch<Accommodation>(`/admin/accommodations/${id}`, body)
+            .patch<types.Accommodation>(`/admin/accommodations/${id}`, body)
             .then((r) => r.data),
         remove: (id: string) =>
           http.delete<void>(`/admin/accommodations/${id}`).then((r) => r.data),
       },
 
       rooms: {
-        list: (accommodationId: string, query?: ListQuery) =>
+        list: (accommodationId: string, query?: types.ListQuery) =>
           http
-            .get<Paginated<Room>>(
+            .get<types.Paginated<types.Room>>(
               `/admin/accommodations/${accommodationId}/rooms`,
               { params: query },
             )
             .then((r) => r.data),
-        create: (accommodationId: string, body: CreateRoomInput) =>
+        create: (accommodationId: string, body: types.CreateRoomInput) =>
           http
-            .post<Room>(`/admin/accommodations/${accommodationId}/rooms`, body)
+            .post<types.Room>(`/admin/accommodations/${accommodationId}/rooms`, body)
             .then((r) => r.data),
-        update: (accommodationId: string, roomId: string, body: UpdateRoomInput) =>
+        update: (accommodationId: string, roomId: string, body: types.UpdateRoomInput) =>
           http
-            .patch<Room>(
+            .patch<types.Room>(
               `/admin/accommodations/${accommodationId}/rooms/${roomId}`,
               body,
             )
@@ -247,21 +221,21 @@ export function createEndpoints(http: AxiosInstance) {
       },
 
       reservations: {
-        list: (query?: WithFilters<ListQuery>) =>
+        list: (query?: WithFilters<types.ListQuery>) =>
           http
-            .get<Paginated<Reservation>>("/admin/reservations", {
+            .get<types.Paginated<types.Reservation>>("/admin/reservations", {
               params: serializeFilters(query),
             })
             .then((r) => r.data),
         get: (id: string) =>
           http
-            .get<Reservation>(`/admin/reservations/${id}`)
+            .get<types.Reservation>(`/admin/reservations/${id}`)
             .then((r) => r.data),
-        updateStatus: (id: string, body: UpdateReservationStatusInput) =>
+        updateStatus: (id: string, body: types.UpdateReservationStatusInput) =>
           http
-            .patch<Reservation>(`/admin/reservations/${id}/status`, body)
+            .patch<types.Reservation>(`/admin/reservations/${id}/status`, body)
             .then((r) => r.data),
-        export: (query?: WithFilters<ListQuery>) =>
+        export: (query?: WithFilters<types.ListQuery>) =>
           http
             .get<ArrayBuffer>("/admin/reservations/export", {
               params: serializeFilters(query),
@@ -276,49 +250,49 @@ export function createEndpoints(http: AxiosInstance) {
       },
 
       notices: {
-        list: (query?: ListQuery) =>
+        list: (query?: types.ListQuery) =>
           http
-            .get<Paginated<Notice>>("/admin/notices", { params: query })
+            .get<types.Paginated<types.Notice>>("/admin/notices", { params: query })
             .then((r) => r.data),
-        create: (body: CreateNoticeInput) =>
-          http.post<Notice>("/admin/notices", body).then((r) => r.data),
-        update: (id: string, body: UpdateNoticeInput) =>
-          http.patch<Notice>(`/admin/notices/${id}`, body).then((r) => r.data),
+        create: (body: types.CreateNoticeInput) =>
+          http.post<types.Notice>("/admin/notices", body).then((r) => r.data),
+        update: (id: string, body: types.UpdateNoticeInput) =>
+          http.patch<types.Notice>(`/admin/notices/${id}`, body).then((r) => r.data),
         remove: (id: string) =>
           http.delete<void>(`/admin/notices/${id}`).then((r) => r.data),
       },
 
       gallery: {
-        list: (query?: ListQuery) =>
+        list: (query?: types.ListQuery) =>
           http
-            .get<Paginated<GalleryItem>>("/admin/gallery", { params: query })
+            .get<types.Paginated<types.GalleryItem>>("/admin/gallery", { params: query })
             .then((r) => r.data),
-        create: (body: CreateGalleryItemInput) =>
-          http.post<GalleryItem>("/admin/gallery", body).then((r) => r.data),
-        update: (id: string, body: UpdateGalleryItemInput) =>
+        create: (body: types.CreateGalleryItemInput) =>
+          http.post<types.GalleryItem>("/admin/gallery", body).then((r) => r.data),
+        update: (id: string, body: types.UpdateGalleryItemInput) =>
           http
-            .patch<GalleryItem>(`/admin/gallery/${id}`, body)
+            .patch<types.GalleryItem>(`/admin/gallery/${id}`, body)
             .then((r) => r.data),
         remove: (id: string) =>
           http.delete<void>(`/admin/gallery/${id}`).then((r) => r.data),
       },
 
       facilities: {
-        list: (query?: WithFilters<ListQuery>) =>
+        list: (query?: WithFilters<types.ListQuery>) =>
           http
-            .get<Paginated<Facility>>("/admin/facilities", { params: serializeFilters(query) })
+            .get<types.Paginated<types.Facility>>("/admin/facilities", { params: serializeFilters(query) })
             .then((r) => r.data),
         get: (id: string) =>
-          http.get<Facility>(`/admin/facilities/${id}`).then((r) => r.data),
-        create: (body: CreateFacilityInput) =>
-          http.post<Facility>("/admin/facilities", body).then((r) => r.data),
-        update: (id: string, body: UpdateFacilityInput) =>
+          http.get<types.Facility>(`/admin/facilities/${id}`).then((r) => r.data),
+        create: (body: types.CreateFacilityInput) =>
+          http.post<types.Facility>("/admin/facilities", body).then((r) => r.data),
+        update: (id: string, body: types.UpdateFacilityInput) =>
           http
-            .patch<Facility>(`/admin/facilities/${id}`, body)
+            .patch<types.Facility>(`/admin/facilities/${id}`, body)
             .then((r) => r.data),
         remove: (id: string) =>
           http.delete<void>(`/admin/facilities/${id}`).then((r) => r.data),
-        export: (query?: WithFilters<ListQuery>) =>
+        export: (query?: WithFilters<types.ListQuery>) =>
           http
             .get<ArrayBuffer>("/admin/facilities/export", {
               params: serializeFilters(query),
@@ -333,14 +307,14 @@ export function createEndpoints(http: AxiosInstance) {
       },
 
       banners: {
-        list: (query?: ListQuery) =>
+        list: (query?: types.ListQuery) =>
           http
-            .get<Paginated<Banner>>("/admin/banners", { params: query })
+            .get<types.Paginated<types.Banner>>("/admin/banners", { params: query })
             .then((r) => r.data),
-        create: (body: CreateBannerInput) =>
-          http.post<Banner>("/admin/banners", body).then((r) => r.data),
-        update: (id: string, body: UpdateBannerInput) =>
-          http.patch<Banner>(`/admin/banners/${id}`, body).then((r) => r.data),
+        create: (body: types.CreateBannerInput) =>
+          http.post<types.Banner>("/admin/banners", body).then((r) => r.data),
+        update: (id: string, body: types.UpdateBannerInput) =>
+          http.patch<types.Banner>(`/admin/banners/${id}`, body).then((r) => r.data),
         remove: (id: string) =>
           http.delete<void>(`/admin/banners/${id}`).then((r) => r.data),
       },
