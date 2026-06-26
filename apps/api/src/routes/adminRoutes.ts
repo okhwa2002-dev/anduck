@@ -202,6 +202,15 @@ const registerAdminRoutes = async (app: FastifyInstance) => {
     },
   }, adminController.listReservations);
 
+  app.get<{ Querystring: types.ListQuery }>("/admin/reservations/export", {
+    schema: {
+      tags: ["Admin / Reservations"],
+      summary: "예약 목록 엑셀 다운로드",
+      querystring: { $ref: "ListQuery#" },
+      ...SEC,
+    },
+  }, adminController.exportReservations);
+
   app.get<{ Params: { id: string } }>("/admin/reservations/:id", {
     schema: {
       tags: ["Admin / Reservations"],

@@ -261,6 +261,18 @@ export function createEndpoints(http: AxiosInstance) {
           http
             .patch<Reservation>(`/admin/reservations/${id}/status`, body)
             .then((r) => r.data),
+        export: (query?: WithFilters<ListQuery>) =>
+          http
+            .get<ArrayBuffer>("/admin/reservations/export", {
+              params: serializeFilters(query),
+              responseType: "arraybuffer",
+            })
+            .then((r) => {
+              const disposition = r.headers["content-disposition"] as string | undefined;
+              const match = disposition?.match(/filename\*=UTF-8''(.+)/);
+              const filename = match ? decodeURIComponent(match[1]) : "download.xlsx";
+              return { data: r.data, filename };
+            }),
       },
 
       notices: {

@@ -4,17 +4,16 @@ import { useMemo } from "react";
 import useSWR from "swr";
 import { type ColumnDef } from "@tanstack/react-table";
 import { adminApi } from "@/api/admin";
+import { downloadExcel } from "@/lib/download";
 import { CodeBadge } from "@/components/common/CodeBadge";
-import { AdminListGrid } from "@/components/common/AdminListGrid";
 import {
+  TableGrid,
   buildFilterConditions,
   type FilterDefinition,
-} from "@/components/common/FilterSelect";
+} from "@/components/common/TableGrid";
 import { useAdminListState } from "@/hooks/useAdminListState";
 import { useCommonCode } from "@/hooks/useCommonCodes";
 import type { Reservation } from "@anduck/types";
-
-const PAGE_SIZE_OPTIONS = [20, 50, 100];
 
 const RES_TYPE_GROUP = "RES_TYPE_CD";
 const RES_STATUS_GROUP = "RES_STATUS_CD";
@@ -113,7 +112,6 @@ type ReservationFilterField = "kind" | "status";
 export function ReservationsIndexPage() {
   const list = useAdminListState<ReservationFilterField>({
     basePath: "/admin/reservations",
-    pageSizeOptions: PAGE_SIZE_OPTIONS,
   });
 
   const resTypeCode = useCommonCode(RES_TYPE_GROUP);
@@ -150,8 +148,16 @@ export function ReservationsIndexPage() {
       }),
   );
 
+  async function handleDownload() {
+    const { data: excelData, filename } = await adminApi.reservations.export({
+      q: list.q || undefined,
+      filters: buildFilterConditions(list.filters),
+    });
+    downloadExcel(excelData, filename);
+  }
+
   return (
-    <AdminListGrid
+    <TableGrid
       title="예약 관리"
       result={data}
       columns={columns}
@@ -160,6 +166,7 @@ export function ReservationsIndexPage() {
       error={error}
       filters={filterDefinitions}
       searchPlaceholder="예약자명·연락처 검색"
+      onDownload={handleDownload}
       onRowClick={(row) => list.router.push(`/admin/reservations/${row.id}`)}
     />
   );

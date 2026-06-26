@@ -59,7 +59,7 @@ apps/api/src/
   app.ts            # Fastify 인스턴스, 플러그인, 라우트 등록
   utils/
     index.ts        # pgId, pgBigintArr, pgTextArr, pgJsonb, limitOffsetSQL, toPaged ...
-    errors.ts       # AppError / BadRequestError / NotFoundError / ConflictError
+    errors.ts       # AppError 클래스 + Errors 팩토리 (badRequest / notFound / conflict)
     logger.ts       # LogRotator (일 단위 파일 로테이션)
     db.ts           # pg Pool + mybatis-mapper 래퍼
     config.ts       # 환경변수 → ApiConfig

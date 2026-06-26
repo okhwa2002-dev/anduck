@@ -3,7 +3,7 @@ import path from "path";
 import { randomUUID } from "crypto";
 import * as db from "../utils/db";
 import { pgId } from "../utils";
-import { BadRequestError } from "../utils/errors";
+import { Errors } from "../utils/errors";
 
 const IMAGE_TYPES = {
   "image/jpeg": { ext: ".jpg", extensions: [".jpg", ".jpeg"] },
@@ -59,17 +59,17 @@ function detectImageMime(buffer: Buffer): ImageMime | null {
 function validateImageFile(file: { filename: string; mimetype: string }, buffer: Buffer): ImageMime {
   const detectedMime = detectImageMime(buffer);
   if (!detectedMime) {
-    throw new BadRequestError("실제 이미지 파일만 업로드할 수 있습니다");
+    throw Errors.badRequest("실제 이미지 파일만 업로드할 수 있습니다");
   }
 
   if (file.mimetype !== detectedMime) {
-    throw new BadRequestError("파일 MIME 타입과 실제 이미지 형식이 일치하지 않습니다");
+    throw Errors.badRequest("파일 MIME 타입과 실제 이미지 형식이 일치하지 않습니다");
   }
 
   const ext = path.extname(file.filename).toLowerCase();
   const allowedExtensions = IMAGE_TYPES[detectedMime].extensions;
   if (ext && !allowedExtensions.includes(ext as never)) {
-    throw new BadRequestError("파일 확장자와 실제 이미지 형식이 일치하지 않습니다");
+    throw Errors.badRequest("파일 확장자와 실제 이미지 형식이 일치하지 않습니다");
   }
 
   return detectedMime;

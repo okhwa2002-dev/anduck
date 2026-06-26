@@ -6,16 +6,14 @@ import { type ColumnDef } from "@tanstack/react-table";
 import { adminApi } from "@/api/admin";
 import { downloadExcel } from "@/lib/download";
 import { CodeBadge } from "@/components/common/CodeBadge";
-import { AdminListGrid } from "@/components/common/AdminListGrid";
 import {
+  TableGrid,
   buildFilterConditions,
   type FilterDefinition,
-} from "@/components/common/FilterSelect";
+} from "@/components/common/TableGrid";
 import { useAdminListState } from "@/hooks/useAdminListState";
 import { useCommonCode } from "@/hooks/useCommonCodes";
 import type { Facility } from "@anduck/types";
-
-const PAGE_SIZE_OPTIONS = [20, 50, 100];
 
 const FAC_TYPE_GROUP = "FAC_TYPE_CD";
 const OPEN_YN_GROUP = "OPEN_YN";
@@ -90,7 +88,6 @@ type FacilityFilterField = "kind" | "mainOpenYn" | "activeYn";
 export function FacilitiesIndexPage() {
   const list = useAdminListState<FacilityFilterField>({
     basePath: "/admin/facilities",
-    pageSizeOptions: PAGE_SIZE_OPTIONS,
   });
   const facilityTypeCode = useCommonCode(FAC_TYPE_GROUP);
   const openYnCode = useCommonCode(OPEN_YN_GROUP);
@@ -139,7 +136,7 @@ export function FacilitiesIndexPage() {
   }
 
   return (
-    <AdminListGrid
+    <TableGrid
       title="시설 관리"
       result={data}
       columns={columns}

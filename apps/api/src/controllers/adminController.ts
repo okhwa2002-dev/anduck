@@ -78,6 +78,11 @@ const adminController = {
     return adminService.updateAdminReservationStatus(req.params.id, req.body);
   },
 
+  async exportReservations(req: Req<{ Querystring: types.ListQuery }>, reply: FastifyReply) {
+    const { buffer, title } = await adminService.exportAdminReservations(req.query);
+    sendExcelReply(reply, buffer, title);
+  },
+
   async listNotices(req: Req<{ Querystring: types.ListQuery }>) {
     return adminService.listAdminNotices(req.query);
   },

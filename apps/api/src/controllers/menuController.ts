@@ -1,7 +1,7 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
 import type * as types from "@anduck/types";
 import menuService from "../services/menuService";
-import { NotFoundError } from "../utils/errors";
+import { Errors } from "../utils/errors";
 
 type Req<T extends Record<string, unknown> = Record<never, never>> = FastifyRequest<T>;
 
@@ -41,7 +41,7 @@ const menuController = {
   /** 메뉴 수정 (admin) */
   async updateMenu(req: Req<{ Params: { id: string }; Body: types.UpdateMenuInput }>) {
     const result = await menuService.updateMenu(req.params.id, req.body);
-    if (!result) throw new NotFoundError("메뉴를 찾을 수 없습니다");
+    if (!result) throw Errors.notFound("메뉴를 찾을 수 없습니다");
     return result;
   },
 };

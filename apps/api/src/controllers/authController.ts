@@ -1,7 +1,7 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
 import { randomUUID } from "crypto";
 import authService from "../services/authService";
-import { BadRequestError, ConflictError } from "../utils/errors";
+import { Errors } from "../utils/errors";
 
 type AuthUser = {
   id: string;
@@ -41,14 +41,14 @@ const authController = {
       await authService.saveRefreshToken(user.id, refreshToken, req.headers["user-agent"]);
       return reply.code(201).send({ user, tokens: { accessToken, refreshToken, csrfToken } });
     } catch (err: any) {
-      if (err.code === "23505") throw new ConflictError("이미 사용 중인 이메일입니다");
+      if (err.code === "23505") throw Errors.conflict("이미 사용 중인 이메일입니다");
       throw err;
     }
   },
 
   async refresh(req: FastifyRequest<{ Body: { refreshToken: string } }>, reply: FastifyReply) {
     const { refreshToken } = req.body ?? {};
-    if (!refreshToken) throw new BadRequestError("리프레시 토큰이 필요합니다");
+    if (!refreshToken) throw Errors.badRequest("리프레시 토큰이 필요합니다");
     const stored = await authService.getRefreshToken(refreshToken);
     if (!stored || stored.revokedAt || new Date(stored.expiresAt) < new Date()) {
       return reply.code(401).send({ message: "유효하지 않은 리프레시 토큰입니다" });

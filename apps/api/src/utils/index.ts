@@ -1,5 +1,5 @@
 import type { FilterCondition, Paginated } from "@anduck/types";
-import { BadRequestError, NotFoundError } from "./errors";
+import { Errors } from "./errors";
 
 type PageQ = { page?: number; pageSize?: number; all?: boolean };
 
@@ -42,7 +42,7 @@ export function toDateOnly(date: Date | string | null | undefined): string {
 }
 
 export function notFound(message?: string): never {
-  throw new NotFoundError(message);
+  throw Errors.notFound(message);
 }
 
 // ─── PostgreSQL raw-value helpers (used with ${} in mapper XML) ────────────
@@ -50,14 +50,14 @@ export function notFound(message?: string): never {
 /** Validate and format a single bigint ID for raw SQL substitution */
 export function pgId(id?: string | null): string {
   if (!id) return "NULL";
-  if (!/^\d+$/.test(id)) throw new BadRequestError(`유효하지 않은 ID입니다: ${id}`);
+  if (!/^\d+$/.test(id)) throw Errors.badRequest(`유효하지 않은 ID입니다: ${id}`);
   return id;
 }
 
 /** Format a bigint array for raw SQL: ARRAY[1,2,3]::bigint[] */
 export function pgBigintArr(ids?: string[] | null): string {
   if (!ids || !ids.length) return "ARRAY[]::bigint[]";
-  ids.forEach((id) => { if (!/^\d+$/.test(id)) throw new BadRequestError(`유효하지 않은 ID입니다: ${id}`); });
+  ids.forEach((id) => { if (!/^\d+$/.test(id)) throw Errors.badRequest(`유효하지 않은 ID입니다: ${id}`); });
   return `ARRAY[${ids.join(",")}]::bigint[]`;
 }
 

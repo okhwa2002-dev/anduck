@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import type { FilterValues } from "@/components/common/FilterSelect";
+import type { FilterValues } from "@/components/common/TableGrid";
+import { DEFAULT_PAGE_SIZE_OPTIONS } from "@/lib/constants";
 
 interface UseAdminListStateOptions {
   basePath: string;
-  pageSizeOptions: number[];
+  pageSizeOptions?: number[];
 }
 
 export interface AdminListState<TFilterField extends string> {
@@ -26,7 +27,7 @@ export interface AdminListState<TFilterField extends string> {
 
 export function useAdminListState<TFilterField extends string>({
   basePath,
-  pageSizeOptions,
+  pageSizeOptions = DEFAULT_PAGE_SIZE_OPTIONS,
 }: UseAdminListStateOptions) {
   const router = useRouter();
   const searchParams = useSearchParams();

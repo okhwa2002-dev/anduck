@@ -26,8 +26,10 @@ HTTP 요청
 import * as db from "../utils/db";
 import * as utils from "../utils";
 
-// 에러 클래스 — named import
-import { AppError, BadRequestError, NotFoundError, ConflictError } from "../utils/errors";
+// 에러 팩토리 — named import
+import { Errors } from "../utils/errors";
+// AppError는 instanceof 체크 시에만 추가로 import
+// import { AppError, Errors } from "../utils/errors";
 
 // 타입 패키지 — type-only namespace import
 import type * as types from "@anduck/types";

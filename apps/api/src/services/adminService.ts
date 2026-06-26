@@ -6,6 +6,7 @@ import mappers from "./mappers";
 import accommodationService from "./accommodationService";
 import programService from "./programService";
 import { buildExcel } from "../utils/excel";
+import codeService from "./codeService";
 
 const adminService = {
   // ─── re-exported from specialized services ────────────────────────────────
@@ -106,6 +107,54 @@ const adminService = {
     });
     if (!row) throw new Error("예약을 찾을 수 없습니다");
     return mappers.mapReservation(row as any);
+  },
+
+  async exportAdminReservations(q: types.ListQuery) {
+    const toArr = (field: string) => {
+      const vals = utils.filterVals(q.filters, field);
+      return vals ? utils.pgTextArr(vals) : null;
+    };
+    const params = { statuses: toArr("status"), kinds: toArr("kind"), q: q.q ?? null };
+    const rows = (await db.query("reservation", "listReservations", {
+      ...params,
+      limitOffset: utils.limitOffsetSQL({ all: true }),
+    })) as any[];
+
+    const codeGroups = await codeService.listCodeGroups({ groupCodes: "RES_TYPE_CD,RES_STATUS_CD" });
+    const toLabel = (groupCode: string): Record<string, string> => {
+      const group = codeGroups.find((g) => g.groupCode === groupCode);
+      return Object.fromEntries((group?.codes ?? []).map((c) => [c.code, c.name]));
+    };
+    const KIND_LABEL = toLabel("RES_TYPE_CD");
+    const STATUS_LABEL = toLabel("RES_STATUS_CD");
+    const data = rows.map((r) => ({
+      kind: KIND_LABEL[r.kind] ?? r.kind,
+      applicantName: r.applicantName ?? "",
+      applicantPhone: r.applicantPhone ?? "",
+      targetName: r.targetName ?? "",
+      roomName: r.roomName ?? "",
+      period: r.endDate && r.endDate !== r.startDate
+        ? `${r.startDate?.toISOString?.()?.slice(0, 10) ?? r.startDate} ~ ${r.endDate?.toISOString?.()?.slice(0, 10) ?? r.endDate}`
+        : (r.startDate?.toISOString?.()?.slice(0, 10) ?? r.startDate ?? ""),
+      guests: r.guests ?? "",
+      status: STATUS_LABEL[r.status] ?? r.status,
+      createdAt: r.createdAt ? new Date(r.createdAt).toLocaleDateString("ko-KR") : "",
+    }));
+
+    const title = "예약 목록";
+    const today = `작성일자 : ${new Date().toLocaleDateString("ko-KR")}`;
+    const buffer = await buildExcel(title, [
+      { header: "구분",    key: "kind",          width: 12 },
+      { header: "예약자",  key: "applicantName", width: 14 },
+      { header: "연락처",  key: "applicantPhone", width: 16 },
+      { header: "예약 대상", key: "targetName",   width: 24, align: "left" },
+      { header: "객실",    key: "roomName",       width: 16, align: "left" },
+      { header: "이용일",  key: "period",         width: 24 },
+      { header: "인원",    key: "guests",         width: 8 },
+      { header: "상태",    key: "status",         width: 10 },
+      { header: "신청일",  key: "createdAt",      width: 14 },
+    ], data, { title, date: today });
+    return { buffer, title };
   },
 
   // ─── Notices ──────────────────────────────────────────────────────────────
@@ -293,13 +342,21 @@ const adminService = {
     };
     const rows = (await db.query("facility", "listFacilities", { ...params, limitOffset: utils.limitOffsetSQL({ all: true }) })) as any[];
 
-    const KIND_LABEL: Record<string, string> = { VILLAGE: "마을시설", NEARBY: "주변관광지" };
+    const codeGroups = await codeService.listCodeGroups({ groupCodes: "FAC_TYPE_CD,OPEN_YN,ACTIVE_YN" });
+    const toLabel = (groupCode: string): Record<string, string> => {
+      const group = codeGroups.find((g) => g.groupCode === groupCode);
+      return Object.fromEntries((group?.codes ?? []).map((c) => [c.code, c.name]));
+    };
+    const KIND_LABEL = toLabel("FAC_TYPE_CD");
+    const OPEN_LABEL = toLabel("OPEN_YN");
+    const ACTIVE_LABEL = toLabel("ACTIVE_YN");
+
     const data = rows.map((r) => ({
       kind: KIND_LABEL[r.kind] ?? r.kind,
       name: r.name,
       summary: r.summary ?? "",
-      mainOpenYn: r.mainOpenYn === "Y" ? "노출" : "미노출",
-      activeYn: r.activeYn === "Y" ? "활성" : "비활성",
+      mainOpenYn: OPEN_LABEL[r.mainOpenYn] ?? r.mainOpenYn,
+      activeYn: ACTIVE_LABEL[r.activeYn] ?? r.activeYn,
       createdAt: r.createdAt ? new Date(r.createdAt).toLocaleDateString("ko-KR") : "",
     }));
 

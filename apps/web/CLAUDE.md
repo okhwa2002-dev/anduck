@@ -104,6 +104,7 @@ apps/web/src/
 | `/admin/programs` | AdminLayout | `admin/programs/IndexPage` |
 | `/admin/accommodations` | AdminLayout | `admin/accommodations/IndexPage` |
 | `/admin/reservations` | AdminLayout | `admin/reservations/IndexPage` |
+| `/admin/reservations/[id]` | AdminLayout | `admin/reservations/EditPage` |
 | `/admin/notices` | AdminLayout | `admin/notices/IndexPage` |
 | `/admin/gallery` | AdminLayout | `admin/gallery/IndexPage` |
 | `/admin/facilities` | AdminLayout | `admin/facilities/IndexPage` |

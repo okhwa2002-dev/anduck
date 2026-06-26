@@ -137,7 +137,7 @@ export async function createApp(): Promise<FastifyInstance> {
 
   app.setErrorHandler((error: Error, _request, reply) => {
     if (error instanceof AppError) {
-      return reply.code(error.statusCode).send({ message: error.message });
+      return reply.code(error.statusCode).send({ code: error.code, message: error.message });
     }
     reply.send(error);
   });

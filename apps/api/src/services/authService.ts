@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import { createHash } from "crypto";
 import * as db from "../utils/db";
 import * as utils from "../utils";
-import { BadRequestError } from "../utils/errors";
+import { Errors } from "../utils/errors";
 
 export type UserRow = {
   id: string;
@@ -81,7 +81,7 @@ const authService = {
     if (!user) return null;
 
     if (isAccountLocked(user)) {
-      throw new BadRequestError("계정이 잠겨 있습니다. 잠시 후 다시 시도해 주세요.");
+      throw Errors.badRequest("계정이 잠겨 있습니다. 잠시 후 다시 시도해 주세요.");
     }
 
     const valid = await bcrypt.compare(password, user.passwordHash);
