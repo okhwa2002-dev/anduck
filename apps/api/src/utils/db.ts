@@ -39,7 +39,7 @@ function writeSqlLog(label: string, sql: string): void {
   if (_logger) {
     _logger.info(msg);
   } else {
-    process.stdout.write(`\n${msg}\n`);
+    process.stdout.write(Buffer.from(`\n${msg}\n`, "utf8"));
   }
 }
 
