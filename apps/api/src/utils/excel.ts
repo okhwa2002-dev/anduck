@@ -48,7 +48,7 @@ export async function buildExcel(
   let nextRow = 1;
 
   // 1행: 타이틀 (전체 열 병합, 테두리 없음)
-  if (options.title) {
+  if (options?.title) {
     ws.mergeCells(nextRow, 1, nextRow, colCount);
     const cell = ws.getCell(nextRow, 1);
     cell.value = options.title;
